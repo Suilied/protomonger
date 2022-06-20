@@ -1,0 +1,140 @@
+#include "circlepacker.h"
+
+CirclePacker::CirclePacker(){}
+
+CirclePacker::~CirclePacker(){
+    reset();
+}
+
+void CirclePacker::setup(){}
+
+float distance(float x1, float y1, float x2, float y2){
+    float distx = x1-x2;
+    float disty = y1-y2;
+    return sqrt(distx*distx + disty*disty);
+}
+
+void CirclePacker::add_circle(
+    float x,
+    float y,
+    float radiusMin,
+    float radiusMax,
+    float radiusGrowth,
+    float gap,
+    Color fill_color,
+    Color stroke_color
+) {
+    CirclePackerItem* circle = new CirclePackerItem();
+
+    circle->x = x;
+    circle->y = y;
+    circle->radius = radiusMin;
+    circle->radiusMin = radiusMin;
+    circle->radiusMax = radiusMax;
+    circle->radiusGrowth = radiusGrowth;
+    circle->gap = gap;
+    circle->fill_color = fill_color;
+    circle->stroke_color = stroke_color;
+
+    circles_to_add.push_back(circle);
+}
+
+void CirclePacker::update() {
+    CirclePackerItem* c1;
+    CirclePackerItem* c2;
+
+    for(int i=0; i<circles_to_add.size(); i++) {
+        c1 = circles_to_add[i];
+
+        for(int j=0; j<circles.size(); j++) {
+            c2 = circles[j];
+
+            float d = distance(c1->x, c1->y, c2->x, c2->y);
+            float r1 = c1->get_radius_max();
+            float r2 = c2->alive ? c2->get_radius_max() : c2->get_radius();
+            float r = r1 + r2;
+
+            if(d <= r) {
+                c1->neighbours.push_back(c2);
+                c2->neighbours.push_back(c1);
+            }
+        }
+
+        circles.push_back(c1);
+    }
+
+    circles_to_add.clear();
+    if(circles.size() == 0) {
+        return;
+    }
+
+    int i, j, t; // todo: clean this up
+    for(i=0; i<circles.size(); i++) {
+        c1 = circles[i];
+
+        for(j=0; j<c1->neighbours.size(); j++) {
+            c2 = c1->neighbours[j];
+            if((c1->alive == false) && (c2->alive == false)) {
+                continue;   // I'm not sure if this does what we hope it does
+            }
+        
+            float d = distance(c1->x, c1->y, c2->x, c2->y);
+            float r1 = (c1->alive == true) ? c1->get_radius_next() : c1->get_radius();
+            float r2 = (c2->alive == true) ? c2->get_radius_next() : c2->get_radius();
+            float r = r1 + r2;
+
+            if(r >= d){
+                c1->alive = false;
+                c2->alive = false;
+            }
+        }
+    }
+
+    t = circles.size();
+    for(i=0; i<t; i++) {
+        c1 = circles[i];
+
+        if(c1->count == 0 && !c1->alive) {
+            for(j=0; j<c1->neighbours.size(); j++) {
+                c2 = c1->neighbours[j];
+
+                for(int k=0; k<c2->neighbours.size(); k++) {
+                    if(c2->neighbours[k] == c1) {
+                        c2->neighbours.erase(c2->neighbours.begin() + k);
+                        break;
+                    }
+                }
+            }
+
+            circles.erase(circles.begin() + i);
+            delete c1;  // this erases the circle from memory
+            --i;
+            --t;
+        }
+    }
+
+    for(i=0; i<circles.size(); i++) {
+        c1 = circles[i];
+        if(c1->alive) {
+            c1->radius += c1->radiusGrowth;
+            c1->count++;
+
+            if(c1->radius >= c1->radiusMax) {
+                c1->radius = c1->radiusMax;
+                c1->alive = false;
+            }
+        }
+    }
+}
+
+void CirclePacker::reset() {
+    for(int i=0; i<circles_to_add.size(); i++){
+        delete circles_to_add[i];
+    }
+    circles_to_add.clear();
+
+    for(int i=0; i<circles.size(); i++){
+        delete circles[i];
+    }
+    circles.clear();
+}

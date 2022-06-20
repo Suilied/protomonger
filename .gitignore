@@ -1,0 +1,6 @@
+
+include/
+lib/
+.vs/
+Debug/
+packages/

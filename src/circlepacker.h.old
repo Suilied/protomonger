@@ -1,0 +1,62 @@
+#pragma once
+
+#include <vector>
+#include "scribe.h"
+
+class CirclePackerItem {
+public:
+    CirclePackerItem() {
+        x = 0.f;
+        y = 0.f;
+        radius = 0.f;
+        radiusMin = 0.f;
+        radiusMax = 0.f;
+        radiusGrowth = 0.f;
+        gap = 0.f;
+        count = 0;
+        alive = true;
+    };
+
+    float get_radius() { return radius + gap; }
+    float get_radius_next() { return radius + radiusGrowth + gap; }
+    float get_radius_max() { return radiusMax + gap; }
+
+    float x;
+    float y;
+    float radius;
+    float radiusMin;
+    float radiusMax;
+    float radiusGrowth;
+    float gap;
+
+    Color fill_color;
+    Color stroke_color;
+
+    int count;
+    bool alive;
+
+    std::vector<CirclePackerItem*> neighbours;
+};
+
+class CirclePacker {
+public:
+    CirclePacker();
+    ~CirclePacker();
+
+    void setup();
+    void update();
+    void reset();
+    void add_circle(
+        float x,
+        float y,
+        float radiusMin = 0.1f,
+        float radiusMax = 10.0f,
+        float radiusGrowth = 0.1f,
+        float gap = 0.0f,
+        Color fill_color = Color::BLACK,
+        Color stroke_color = Color::WHITE
+    );
+
+    std::vector<CirclePackerItem*> circles_to_add;
+    std::vector<CirclePackerItem*> circles;
+};
