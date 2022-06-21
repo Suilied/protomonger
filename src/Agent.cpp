@@ -56,9 +56,9 @@ namespace RVO {
 		agentNeighbors_.clear();
 
 		if (maxNeighbors_ > 0) {
-			//rangeSq = sqr(neighborDist_);
+			rangeSq = sqr(neighborDist_);
 			//float rangeSq = sqr(timeHorizonObst_ * maxSpeed_ + flocking_radius_);
-			rangeSq = sqr(flocking_radius_);
+			//rangeSq = sqr(flocking_radius_);
 			sim_->kdTree_->computeAgentNeighbors(this, rangeSq);
 		}
 

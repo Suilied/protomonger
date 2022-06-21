@@ -184,7 +184,8 @@ namespace RVO {
 #endif
 		for (int i = 0; i < static_cast<int>(agents_.size()); ++i) {
 			agents_[i]->computeNeighbors();
-			agents_[i]->computeFlockVelocity();
+			//agents_[i]->computeFlockVelocity(); // besides not working I doubt we need it
+			// in the future please refer to the "chicken" example from Godot for flocking
 			agents_[i]->computeNewVelocity();
 		}
 
