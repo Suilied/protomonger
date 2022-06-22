@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <math.h>
 #include <vector>
-#include <SDL2\SDL.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #define DEFAULT_FONT ".\\assets\\fonts\\Hack-Regular.ttf"
 
