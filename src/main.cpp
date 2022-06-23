@@ -9,6 +9,17 @@
 #include "circlepacker.h"
 #include "RVO.h"
 
+/*
+* tour agency nodig
+* tour guides & planners
+* in agent een stuk met status (enum) 
+* zodat we andere agents kunnen pushen als die idle zijn
+* planner heeft circlepacker nodig om sub-stations correct te plannen
+* substations krijgen een offset in hoeken everredig aan de hoek
+* offset lengte van de hoek is totaal size van circlepacker + constante
+* los van de tour agency moet er een manier zijn om agents te selecteren
+*/
+
 #define PIE 3.14159265358979323846f
 
 #define WINDOW_WIDTH 800
@@ -26,6 +37,8 @@ struct Bubble {
 };
 
 std::vector<Bubble*> bubbles;
+
+std::vector<Vector2> newPath;
 
 void clear_bubbles() {
     for (int i = 0; i < bubbles.size(); i++) {
@@ -266,7 +279,12 @@ int main(int argc, char* argv[])
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
-                        //circlePacker->set_center(event.button.x, event.button.y);
+                        // add point to path planner
+                        newPath.push_back(Vector2(event.button.x, event.button.y));
+                    }
+                    if (event.button.button == SDL_BUTTON_MIDDLE) {
+                        // erase constructed path
+                        newPath.clear();
                     }
                     if (event.button.button == SDL_BUTTON_RIGHT) {
                         circlePacker->set_center(event.button.x, event.button.y);

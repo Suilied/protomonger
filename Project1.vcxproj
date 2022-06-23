@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Agent.h" />
+    <ClInclude Include="src\AgentPlanner.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\circlepacker.h" />
     <ClInclude Include="src\Definitions.h" />
