@@ -30,6 +30,11 @@ void Scribe::draw_circle(int x, int y, int radius) {
     }
 }
 
+void Scribe::draw_line(int x0, int y0, int x1, int y1) {
+    SDL_SetRenderDrawColor(_renderer, _colors[_draw_color].r, _colors[_draw_color].g, _colors[_draw_color].b, _colors[_draw_color].a);
+    SDL_RenderDrawLine(_renderer, x0, y0, x1, y1);
+}
+
 void Scribe::draw_text(int x, int y, const char* t) {
     _msg_sur = TTF_RenderText_Solid(_font, t, _colors[Color::WHITE]);
 

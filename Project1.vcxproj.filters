@@ -45,7 +45,7 @@
     <ClInclude Include="src\Definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\AgentPlanner.h">
+    <ClInclude Include="src\AgentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -69,6 +69,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\RVOSimulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AgentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

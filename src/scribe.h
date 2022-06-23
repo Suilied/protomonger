@@ -35,6 +35,7 @@ public:
     void set_draw_color(Color color);
     void set_clear_color(Color color);
     void draw_circle(int x, int y, int radius);
+    void draw_line(int x0, int y0, int x1, int y1);
     void draw_text(int x, int y, const char* t);
     void clear();
     void draw();
