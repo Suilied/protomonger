@@ -32,6 +32,12 @@
 
 #define NUM_AGENTS 30
 
+enum MouseMode {
+    select = 0,
+    waypoint,
+    max
+};
+
 int main(int argc, char* argv[])
 {
     SDL_Window* window;
@@ -63,6 +69,10 @@ int main(int argc, char* argv[])
 
     AgentManager* agentPlanner = new AgentManager();
     agentPlanner->spawn_agents_circular(Vector2(WINDOW_CENTERX, WINDOW_CENTERY),NUM_AGENTS);
+    int mousemode = MouseMode::waypoint;
+    bool selecting = false;
+    Vector2 select_box;
+    Vector2 mouse_pos;
 
     // setup frame timer
     unsigned int total_time = SDL_GetTicks();
@@ -75,6 +85,15 @@ int main(int argc, char* argv[])
         total_time = new_time;
         float frame_time_ms = frame_time / 1000.0f;
 
+        /*
+        * TODO:
+        * bind keys
+        * x: build waypoint mode
+        * x: select units mode
+        * visualise mode with renderText
+        */
+
+
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_QUIT:
@@ -84,7 +103,11 @@ int main(int argc, char* argv[])
                     switch (event.key.keysym.sym) {
                         case SDLK_SPACE:
                             break;
-                        case SDLK_r:
+                        case SDLK_x:
+                            if (mousemode != MouseMode::max - 1)
+                                mousemode++;
+                            else
+                                mousemode = 0;
                             break;
                         case SDLK_ESCAPE:
                             exit_program = SDL_TRUE;
@@ -93,8 +116,16 @@ int main(int argc, char* argv[])
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
-                        // add point to path planner
-                        agentPlanner->new_waypoint(event.button.x, event.button.y);
+                        switch (mousemode) {
+                        case MouseMode::select:
+                            select_box = Vector2(event.button.x, event.button.y);
+                            selecting = true;
+                            break;
+                        case MouseMode::waypoint:
+                            // add point to path planner
+                            agentPlanner->new_waypoint(event.button.x, event.button.y);
+                            break;
+                        }
                     }
                     if (event.button.button == SDL_BUTTON_MIDDLE) {
                         // erase constructed path
@@ -102,6 +133,26 @@ int main(int argc, char* argv[])
                     }
                     if (event.button.button == SDL_BUTTON_RIGHT) {
                         agentPlanner->set_agent_target(event.button.x, event.button.y);
+                    }
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    if (mousemode == MouseMode::select) {
+                        // if area of selection box is > 5x5 px
+                        float selboxw = event.button.x - select_box.x();
+                        float selboxh = event.button.y - select_box.y();
+                        if (selboxw * selboxh > 25.f) {
+                            agentPlanner->select_agent_box(select_box.x(), select_box.y(), event.button.x, event.button.y);
+                        }
+                        else {
+                            agentPlanner->select_agent_point(event.button.x, event.button.y);
+                        }
+                        selecting = false;
+                        select_box = Vector2();
+                    }
+                    break;
+                case SDL_MOUSEMOTION:
+                    if (selecting) {
+                        mouse_pos = Vector2(event.button.x, event.button.y);
                     }
                     break;
             }
@@ -114,10 +165,25 @@ int main(int argc, char* argv[])
         agentPlanner->update(frame_time_ms);
         agentPlanner->debug_draw(scribe);
 
+        // draw selection box (if applicable)
+        if (selecting) {
+            scribe->set_draw_color(Color::GREEN);
+            scribe->draw_rectangle(select_box.x(), select_box.y(), mouse_pos.x(), mouse_pos.y());
+        }
+
         // draw FPS
         int fps_val = std::floor(frame_time > 0 ? 1000.f / frame_time : 0.f);
         std::string fps_text = std::to_string(fps_val);
         scribe->draw_text(10, 10, fps_text.c_str());
+
+        switch (mousemode) {
+        case MouseMode::select:
+            scribe->draw_text(10, 20, "Mode: Select");
+            break;
+        case MouseMode::waypoint:
+            scribe->draw_text(10, 20, "Mode: Waypoint");
+            break;
+        }
 
         scribe->draw();
     }

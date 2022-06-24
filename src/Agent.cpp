@@ -66,6 +66,10 @@ namespace RVO {
 		//seek_target_ = Vector2();
 	}
 
+	// TODO: kijk of agent dichtbij genoeg is via KdTree
+	//void Agent::isNearPoint(float rangeSq) {
+	//}
+
 	bool vec_exceeds_length(Vector2 vec, float length) {
 		return (vec.x() * vec.x()) + (vec.y() * vec.y()) > length * length;
 	}

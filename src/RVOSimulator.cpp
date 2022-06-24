@@ -313,6 +313,10 @@ namespace RVO {
 		return timeStep_;
 	}
 
+	void RVOSimulator::drawKdTree(Scribe* scribe) {
+		kdTree_->drawKdTree(scribe);
+	}
+
 	void RVOSimulator::processObstacles()
 	{
 		kdTree_->buildObstacleTree();

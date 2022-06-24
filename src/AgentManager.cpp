@@ -116,7 +116,20 @@ void AgentManager::update(float deltaTime) {
     }
 }
 
+void AgentManager::select_agent_point(float x, float y) {
+
+}
+
+void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
+
+}
+
 void AgentManager::debug_draw(Scribe* scribe) {
+    // draw KD tree
+    if (renderKdTree) {
+        _rvoSim->drawKdTree(scribe);
+    }
+
     // Draw RVO agents
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
         Vector2 p = _rvoSim->getAgentPosition(i);

@@ -254,6 +254,14 @@ namespace RVO {
 		queryObstacleTreeRecursive(agent, rangeSq, obstacleTree_);
 	}
 
+	size_t KdTree::agentOnPoint(Vector2& point) const {
+		return agentOnPointRecursive(point, 0);
+	}
+
+	void KdTree::agentsOnRectangle(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright) const {
+		agentsOnRectangleRecursive(agents, topleft, bottomright, 0);
+	}
+
 	void KdTree::deleteObstacleTree(ObstacleTreeNode *node)
 	{
 		if (node != NULL) {
@@ -328,6 +336,15 @@ namespace RVO {
 		}
 	}
 
+	// should return the agent ID of the first agent whose radius overlaps the given point
+	size_t KdTree::agentOnPointRecursive(Vector2& point, size_t node) const {
+		return -1;
+	}
+
+	void KdTree::agentsOnRectangleRecursive(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright, size_t node) const {
+
+	}
+
 	bool KdTree::queryVisibility(const Vector2 &q1, const Vector2 &q2, float radius) const
 	{
 		return queryVisibilityRecursive(q1, q2, radius, obstacleTree_);
@@ -363,6 +380,19 @@ namespace RVO {
 
 				return (point1LeftOfQ * point2LeftOfQ >= 0.0f && sqr(point1LeftOfQ) * invLengthQ > sqr(radius) && sqr(point2LeftOfQ) * invLengthQ > sqr(radius) && queryVisibilityRecursive(q1, q2, radius, node->left) && queryVisibilityRecursive(q1, q2, radius, node->right));
 			}
+		}
+	}
+
+	void KdTree::drawKdTree(Scribe* scribe) {
+		scribe->set_draw_color(Color::RED);
+		drawKdTreeRecursively(scribe, 0);
+	}
+
+	void KdTree::drawKdTreeRecursively(Scribe* scribe, size_t node) {
+		scribe->draw_rectangle(agentTree_[node].minX, agentTree_[node].minY, agentTree_[node].maxX, agentTree_[node].maxY);
+		if (agentTree_[node].end - agentTree_[node].begin > MAX_LEAF_SIZE) {
+			drawKdTreeRecursively(scribe, agentTree_[node].left);
+			drawKdTreeRecursively(scribe, agentTree_[node].right);
 		}
 	}
 }

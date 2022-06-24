@@ -43,6 +43,7 @@
 #include <vector>
 
 #include "Vector2.h"
+#include "scribe.h"
 
 namespace RVO {
 	/**
@@ -596,6 +597,8 @@ namespace RVO {
 		 *                             Must be positive.
 		 */
 		void setTimeStep(float timeStep);
+
+		void drawKdTree(Scribe* scribe);
 
 	private:
 		std::vector<Agent *> agents_;

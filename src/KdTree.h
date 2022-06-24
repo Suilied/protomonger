@@ -39,6 +39,7 @@
  */
 
 #include "Definitions.h"
+#include "scribe.h"
 
 namespace RVO {
 	/**
@@ -156,6 +157,12 @@ namespace RVO {
 		 */
 		void computeObstacleNeighbors(Agent *agent, float rangeSq) const;
 
+		/*
+		* \brief	find out if a point lies within any agents radius
+		*/
+		size_t agentOnPoint(Vector2& point) const;
+		void agentsOnRectangle(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright) const;
+
 		/**
 		 * \brief      Deletes the specified obstacle tree node.
 		 * \param      node            A pointer to the obstacle tree node to be
@@ -169,6 +176,8 @@ namespace RVO {
 		void queryObstacleTreeRecursive(Agent *agent, float rangeSq,
 										const ObstacleTreeNode *node) const;
 
+		size_t agentOnPointRecursive(Vector2& point, size_t node) const;
+		void agentsOnRectangleRecursive(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright, size_t node) const;
 		/**
 		 * \brief      Queries the visibility between two points within a
 		 *             specified radius.
@@ -187,6 +196,9 @@ namespace RVO {
 		bool queryVisibilityRecursive(const Vector2 &q1, const Vector2 &q2,
 									  float radius,
 									  const ObstacleTreeNode *node) const;
+
+		void drawKdTree(Scribe* scribe);
+		void drawKdTreeRecursively(Scribe* scribe, size_t node);
 
 		std::vector<Agent *> agents_;
 		std::vector<AgentTreeNode> agentTree_;

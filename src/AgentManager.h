@@ -22,6 +22,10 @@ struct Waypoint {
     float radius_growth;
 };
 
+struct AgentGroup {
+    std::vector<int> _agents;
+};
+
 class AgentManager {
 private:
 	std::vector<Waypoint*> _path;
@@ -29,8 +33,14 @@ private:
     CirclePacker* _circlePacker;
     std::vector<Vector2> _agent_goals;
 
+    std::vector<AgentGroup*> _agent_groups;
+    std::vector<int> _selected_agents;
+
     bool rvof_reached_goals();
     void update_rvof_velocities();
+
+    // debug draw flags
+    bool renderKdTree = true;
 
 public:
     void init();
@@ -41,6 +51,9 @@ public:
 
     void set_agent_target(float x, float y);
     void spawn_agents_circular(Vector2 center_vec, int agent_count);
+
+    void select_agent_point(float x, float y);
+    void select_agent_box(float x0, float y0, float x1, float y1);
 
     AgentManager();
     ~AgentManager();
