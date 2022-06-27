@@ -338,6 +338,20 @@ namespace RVO {
 
 	// should return the agent ID of the first agent whose radius overlaps the given point
 	size_t KdTree::agentOnPointRecursive(Vector2& point, size_t node) const {
+
+		// copied from QueryAgentTreeRecursive
+		// this should be all agents in a single kdtree leaf
+		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
+			for (size_t i = agentTree_[node].begin; i < agentTree_[node].end; ++i) {
+				// in stead of inserting neighbours, lets check to see if any agents
+				// intersect with the Vector2 point
+				//agent->insertAgentNeighbor(agents_[i], rangeSq);
+				if (absSq(agents_[i]->position_ - point) < agents_[i]->radius_) {
+					// we clicked this agent
+					return i;
+				}
+			}
+		}
 		return -1;
 	}
 

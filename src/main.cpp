@@ -120,6 +120,7 @@ int main(int argc, char* argv[])
                         case MouseMode::select:
                             select_box = Vector2(event.button.x, event.button.y);
                             selecting = true;
+                            mouse_pos = select_box;
                             break;
                         case MouseMode::waypoint:
                             // add point to path planner

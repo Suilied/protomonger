@@ -22,6 +22,11 @@ struct Waypoint {
     float radius_growth;
 };
 
+struct AgentReference {
+    int _agentId;
+    bool selected;
+};
+
 struct AgentGroup {
     std::vector<int> _agents;
 };
@@ -33,6 +38,10 @@ private:
     CirclePacker* _circlePacker;
     std::vector<Vector2> _agent_goals;
 
+    /*
+    * agents that have received a movement order will be put in groups 
+    * agents that have been selected are in the _selected_agents vector.
+    */
     std::vector<AgentGroup*> _agent_groups;
     std::vector<int> _selected_agents;
 

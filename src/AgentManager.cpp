@@ -37,6 +37,7 @@ void AgentManager::spawn_agents_circular(Vector2 center_vec, int agent_count) {
         Vector2 relative_goal = -relative_pos;
         _rvoSim->addAgent(center_vec + relative_pos);
         _agent_goals.push_back(center_vec + relative_goal);
+        _selected_agents.push_back(i);  // we're pushing back a selection but maybe we should make an inbetween class that holds RVO agent data as well as Game Agent data
     }
 }
 
@@ -117,7 +118,10 @@ void AgentManager::update(float deltaTime) {
 }
 
 void AgentManager::select_agent_point(float x, float y) {
-
+    // check to see if actually clicked on an agent, and if so: which one
+    // add the agent to the "selected units" group
+    _selected_agents.clear();
+    //_selected_agents.push_back(found_agent);
 }
 
 void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
