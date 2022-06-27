@@ -35,10 +35,70 @@ void AgentManager::spawn_agents_circular(Vector2 center_vec, int agent_count) {
         float ay = std::sin(i * 2.f * PIE / agent_count);
         Vector2 relative_pos = Vector2(ax, ay) * agent_distance;
         Vector2 relative_goal = -relative_pos;
-        _rvoSim->addAgent(center_vec + relative_pos);
-        _agent_goals.push_back(center_vec + relative_goal);
-        _selected_agents.push_back(i);  // we're pushing back a selection but maybe we should make an inbetween class that holds RVO agent data as well as Game Agent data
+        //_rvoSim->addAgent(center_vec + relative_pos);
+        //_agent_goals.push_back(center_vec + relative_goal);
+        spawn_agent(center_vec + relative_pos, center_vec + relative_goal);
     }
+}
+
+void AgentManager::spawn_agents_square(Vector2 center_vec, int agent_count) {
+    float neighbourDist = 15.f;
+    size_t maxNeighbours = 10;
+    float timeHorizon = 10.f;
+    float timeHorizonObst = 10.f;
+    float radius = 5.f;
+    float flocking_radius_scale = 5.f;
+    float maxSpeed = 40.f;
+
+    _rvoSim->setAgentDefaults(
+        neighbourDist,
+        maxNeighbours,
+        timeHorizon,
+        timeHorizonObst,
+        radius,
+        flocking_radius_scale,
+        maxSpeed
+    );
+
+    float placex;
+    float placey;
+    int row_width = 2;
+    int layer = 1;
+    Vector2 placedir;
+    int agents_placed = 0;
+
+    while (agents_placed != agent_count) {
+        placex = center_vec.x() - (neighbourDist * layer);
+        placey = center_vec.y() - (neighbourDist * layer);
+
+        for (int k = 0; k < 4; k++) {
+            if (k == 0) placedir = Vector2(1, 0);   // east
+            else if (k == 1) placedir = Vector2(0, 1);   // south
+            else if (k == 2) placedir = Vector2(-1, 0);   // west
+            else if (k == 3) placedir = Vector2(0, -1);   // north
+
+            for (int j = 0; j < row_width; j++) {
+                spawn_agent(Vector2(placex, placey));
+                agents_placed++;
+                if (agents_placed == agent_count)
+                    return;
+                placex += neighbourDist * placedir.x();
+                placey += neighbourDist * placedir.y();
+            }
+        }
+        row_width+=2;
+        layer++;
+    }
+}
+
+void AgentManager::spawn_agent(Vector2 position, Vector2 goal, bool selected) {
+    if (goal == Vector2()) {
+        goal = position;
+    }
+    // make sure to keep these structures synced.
+    _rvoSim->addAgent(position);
+    _agent_goals.push_back(goal);
+    _selected_agents.push_back(std::pair<bool, int>(selected, _agent_goals.size()));
 }
 
 void AgentManager::set_agent_target(float x, float y) {
@@ -121,7 +181,12 @@ void AgentManager::select_agent_point(float x, float y) {
     // check to see if actually clicked on an agent, and if so: which one
     // add the agent to the "selected units" group
     _selected_agents.clear();
-    //_selected_agents.push_back(found_agent);
+    int agentId = _rvoSim->getAgentInPoint(Vector2(x, y));
+    if (agentId != -1) {
+        // set the current selection to this agent
+        // and also draw the selected agents in a different color
+        _selected_agents[agentId].first = true;
+    }
 }
 
 void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
@@ -138,7 +203,10 @@ void AgentManager::debug_draw(Scribe* scribe) {
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
         Vector2 p = _rvoSim->getAgentPosition(i);
         float r0 = _rvoSim->getAgentRadius(i);
-        scribe->set_draw_color(Color::YELLOW);
+        if( _selected_agents[i].first )
+            scribe->set_draw_color(Color::GREEN);
+        else
+            scribe->set_draw_color(Color::YELLOW);
         scribe->draw_circle(p.x(), p.y(), std::ceil(r0));
     }
 
@@ -149,7 +217,7 @@ void AgentManager::debug_draw(Scribe* scribe) {
     }
 
     // Draw Waypoints
-    scribe->set_draw_color(Color::GREEN);
+    scribe->set_draw_color(Color::CYAN);
     for (int i = 0; i < _path.size(); i++) {
         scribe->draw_circle(_path[i]->x, _path[i]->y, _path[i]->radius);
         if (i + 1 != _path.size()) {

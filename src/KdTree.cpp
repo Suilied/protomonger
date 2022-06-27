@@ -338,7 +338,6 @@ namespace RVO {
 
 	// should return the agent ID of the first agent whose radius overlaps the given point
 	size_t KdTree::agentOnPointRecursive(Vector2& point, size_t node) const {
-
 		// copied from QueryAgentTreeRecursive
 		// this should be all agents in a single kdtree leaf
 		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
@@ -350,6 +349,20 @@ namespace RVO {
 					// we clicked this agent
 					return i;
 				}
+			}
+		}
+		else {
+			if (point.x() > agentTree_[agentTree_[node].left].minX &&
+				point.x() < agentTree_[agentTree_[node].left].maxX &&
+				point.y() > agentTree_[agentTree_[node].left].minY && 
+				point.y() < agentTree_[agentTree_[node].left].maxY ) {
+				return agentOnPointRecursive(point, agentTree_[node].left);
+			}
+			else if (point.x() > agentTree_[agentTree_[node].right].minX &&
+				point.x() < agentTree_[agentTree_[node].right].maxX &&
+				point.y() > agentTree_[agentTree_[node].right].minY &&
+				point.y() < agentTree_[agentTree_[node].right].maxY) {
+				return agentOnPointRecursive(point, agentTree_[node].right);
 			}
 		}
 		return -1;

@@ -598,6 +598,7 @@ namespace RVO {
 		 */
 		void setTimeStep(float timeStep);
 
+		size_t getAgentInPoint(Vector2 point);
 		void drawKdTree(Scribe* scribe);
 
 	private:

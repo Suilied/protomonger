@@ -68,7 +68,9 @@ int main(int argc, char* argv[])
     Scribe* scribe = new Scribe(renderer);
 
     AgentManager* agentPlanner = new AgentManager();
-    agentPlanner->spawn_agents_circular(Vector2(WINDOW_CENTERX, WINDOW_CENTERY),NUM_AGENTS);
+    //agentPlanner->spawn_agents_circular(Vector2(WINDOW_CENTERX, WINDOW_CENTERY),NUM_AGENTS);
+    agentPlanner->spawn_agents_square(Vector2(WINDOW_CENTERX, WINDOW_CENTERY), 16);
+
     int mousemode = MouseMode::waypoint;
     bool selecting = false;
     Vector2 select_box;

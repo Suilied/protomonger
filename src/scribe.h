@@ -14,6 +14,7 @@ enum Color {
     RED,
     YELLOW,
     GREEN,
+    CYAN,
     BLUE,
     NONE
 };

@@ -22,13 +22,9 @@ struct Waypoint {
     float radius_growth;
 };
 
-struct AgentReference {
-    int _agentId;
-    bool selected;
-};
-
-struct AgentGroup {
-    std::vector<int> _agents;
+struct AgentPlan { // AgentGroup x table
+    std::vector<RVO::Agent*> agents;
+    std::vector<Vector2> agent_goals;
 };
 
 class AgentManager {
@@ -39,11 +35,11 @@ private:
     std::vector<Vector2> _agent_goals;
 
     /*
-    * agents that have received a movement order will be put in groups 
+    * agents that have received a movement order will be put in a plan-group
     * agents that have been selected are in the _selected_agents vector.
     */
-    std::vector<AgentGroup*> _agent_groups;
-    std::vector<int> _selected_agents;
+    std::vector<std::pair<bool, int>> _selected_agents;
+    std::vector<AgentPlan*> _agent_plans;
 
     bool rvof_reached_goals();
     void update_rvof_velocities();
@@ -59,7 +55,9 @@ public:
     void debug_draw(Scribe* scribe);
 
     void set_agent_target(float x, float y);
+    void spawn_agent(Vector2 position, Vector2 goal = Vector2(), bool selected = false);
     void spawn_agents_circular(Vector2 center_vec, int agent_count);
+    void spawn_agents_square(Vector2 center_vec, int agent_count);
 
     void select_agent_point(float x, float y);
     void select_agent_box(float x0, float y0, float x1, float y1);

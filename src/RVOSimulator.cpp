@@ -313,6 +313,10 @@ namespace RVO {
 		return timeStep_;
 	}
 
+	size_t RVOSimulator::getAgentInPoint(Vector2 point) {
+		return kdTree_->agentOnPoint(point);
+	}
+
 	void RVOSimulator::drawKdTree(Scribe* scribe) {
 		kdTree_->drawKdTree(scribe);
 	}
