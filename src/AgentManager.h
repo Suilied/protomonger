@@ -22,9 +22,15 @@ struct Waypoint {
     float radius_growth;
 };
 
-struct AgentPlan { // AgentGroup x table
-    std::vector<RVO::Agent*> agents;
-    std::vector<Vector2> agent_goals;
+class AgentPlan { // AgentGroup x table
+private:
+    std::vector<int> agents;
+    std::vector<Vector2> current_goals;
+    std::vector<Waypoint> waypoints;
+
+public:
+    AgentPlan();
+    ~AgentPlan();
 };
 
 class AgentManager {
@@ -52,15 +58,18 @@ public:
     void update(float deltaTime);
 	void new_waypoint(float x, float y);
     void clear_waypoints();
-    void debug_draw(Scribe* scribe);
 
     void set_agent_target(float x, float y);
+    void stop_all_agents();
     void spawn_agent(Vector2 position, Vector2 goal = Vector2(), bool selected = false);
+
+    void select_agent_point(float x, float y, std::vector<int>* agents);
+    void select_agent_box(float x0, float y0, float x1, float y1, std::vector<int>* agents);
+
+    // demo / debug functionality
     void spawn_agents_circular(Vector2 center_vec, int agent_count);
     void spawn_agents_square(Vector2 center_vec, int agent_count);
-
-    void select_agent_point(float x, float y);
-    void select_agent_box(float x0, float y0, float x1, float y1);
+    void debug_draw(Scribe* scribe);
 
     AgentManager();
     ~AgentManager();

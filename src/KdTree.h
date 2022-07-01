@@ -160,8 +160,8 @@ namespace RVO {
 		/*
 		* \brief	find out if a point lies within any agents radius
 		*/
-		size_t agentOnPoint(Vector2& point) const;
-		void agentsOnRectangle(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright) const;
+		size_t getAgentInPoint(Vector2& point);
+		void getAgentsInRectangle(Vector2& topleft, Vector2& bottomright, std::vector<size_t>* agents) const;
 
 		/**
 		 * \brief      Deletes the specified obstacle tree node.
@@ -176,8 +176,9 @@ namespace RVO {
 		void queryObstacleTreeRecursive(Agent *agent, float rangeSq,
 										const ObstacleTreeNode *node) const;
 
-		size_t agentOnPointRecursive(Vector2& point, size_t node) const;
-		void agentsOnRectangleRecursive(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright, size_t node) const;
+		void getAgentInPointRecursive(Vector2& point, size_t& retval, size_t node) const;
+		void getAgentsInRectangleRecursive(Vector2& topleft, Vector2& bottomright, std::vector<size_t>* agents, size_t node) const;
+
 		/**
 		 * \brief      Queries the visibility between two points within a
 		 *             specified radius.
@@ -199,6 +200,9 @@ namespace RVO {
 
 		void drawKdTree(Scribe* scribe);
 		void drawKdTreeRecursively(Scribe* scribe, size_t node);
+		void setMaxAgentRadius(float newRadius);
+
+		float maxAgentRadiusSq_ = 0.0f;
 
 		std::vector<Agent *> agents_;
 		std::vector<AgentTreeNode> agentTree_;

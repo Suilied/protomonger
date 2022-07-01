@@ -53,6 +53,8 @@ namespace RVO {
 		 */
 		explicit Agent(RVOSimulator *sim);
 
+		void set_selected(bool selected);
+
 		/**
 		 * \brief      Computes the neighbors of this agent.
 		 */
@@ -115,6 +117,9 @@ namespace RVO {
 		float cohesion_factor_;
 		float alignment_factor_;
 		float seek_factor_;
+
+		// AgentManagement variables
+		bool is_selected_;
 
 		// pathfindign variables
 		Vector2 seek_target_;

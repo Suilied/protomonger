@@ -101,6 +101,7 @@ namespace RVO {
 		agent->id_ = agents_.size();
 
 		agents_.push_back(agent);
+		kdTree_->setMaxAgentRadius(defaultAgent_->radius_);
 
 		return agents_.size() - 1;
 	}
@@ -123,6 +124,7 @@ namespace RVO {
 		agent->id_ = agents_.size();
 
 		agents_.push_back(agent);
+		kdTree_->setMaxAgentRadius(radius);
 
 		return agents_.size() - 1;
 	}
@@ -313,8 +315,44 @@ namespace RVO {
 		return timeStep_;
 	}
 
+	bool RVOSimulator::getAgentSelected(size_t agentId) {
+		return agents_[agentId]->is_selected_;
+	}
+
 	size_t RVOSimulator::getAgentInPoint(Vector2 point) {
-		return kdTree_->agentOnPoint(point);
+		// if the KdTree hasn't kicked in yet, do it live
+		if (kdTree_->agents_.size() == 0) {
+			for (int i = 0; i < agents_.size(); i++) {
+				float radiusToCheck = agents_[i]->radius_;
+				radiusToCheck *= radiusToCheck;
+				if (absSq(agents_[i]->position_ - point) < radiusToCheck) {
+					// we clicked this agent
+					return i;
+				}
+			}
+			return -1;
+		}
+		else {
+			// use it when you got it
+			return kdTree_->getAgentInPoint(point);
+		}
+	}
+
+	void RVOSimulator::getAgentsInRectangle(Vector2 topleft, Vector2 bottomright, std::vector<size_t>* agents) {
+		// if the kdTree hasn't kicked in yet, do it live
+		if (kdTree_->agents_.size() == 0) {
+			for (int i = 0; agents_.size(); i++) {
+				if (agents_[i]->position_.x() > topleft.x() &&
+					agents_[i]->position_.x() < bottomright.x() &&
+					agents_[i]->position_.y() > topleft.y() &&
+					agents_[i]->position_.y() < bottomright.y()) {
+					agents->push_back(i);
+				}
+			}
+		}
+		else {
+			kdTree_->getAgentsInRectangle(topleft, bottomright, agents);
+		}
 	}
 
 	void RVOSimulator::drawKdTree(Scribe* scribe) {

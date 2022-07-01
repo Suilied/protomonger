@@ -68,10 +68,10 @@ int main(int argc, char* argv[])
     Scribe* scribe = new Scribe(renderer);
 
     AgentManager* agentPlanner = new AgentManager();
-    //agentPlanner->spawn_agents_circular(Vector2(WINDOW_CENTERX, WINDOW_CENTERY),NUM_AGENTS);
-    agentPlanner->spawn_agents_square(Vector2(WINDOW_CENTERX, WINDOW_CENTERY), 16);
+    agentPlanner->spawn_agents_circular(Vector2(WINDOW_CENTERX, WINDOW_CENTERY),NUM_AGENTS);
+    //agentPlanner->spawn_agents_square(Vector2(WINDOW_CENTERX, WINDOW_CENTERY), NUM_AGENTS);
 
-    int mousemode = MouseMode::waypoint;
+    int mousemode = MouseMode::select;
     bool selecting = false;
     Vector2 select_box;
     Vector2 mouse_pos;
@@ -87,15 +87,6 @@ int main(int argc, char* argv[])
         total_time = new_time;
         float frame_time_ms = frame_time / 1000.0f;
 
-        /*
-        * TODO:
-        * bind keys
-        * x: build waypoint mode
-        * x: select units mode
-        * visualise mode with renderText
-        */
-
-
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_QUIT:
@@ -110,6 +101,10 @@ int main(int argc, char* argv[])
                                 mousemode++;
                             else
                                 mousemode = 0;
+                            break;
+                        case SDLK_s:
+                            // stop all agents from moving
+                            agentPlanner->stop_all_agents();
                             break;
                         case SDLK_ESCAPE:
                             exit_program = SDL_TRUE;
@@ -141,9 +136,9 @@ int main(int argc, char* argv[])
                 case SDL_MOUSEBUTTONUP:
                     if (mousemode == MouseMode::select) {
                         // if area of selection box is > 5x5 px
-                        float selboxw = event.button.x - select_box.x();
-                        float selboxh = event.button.y - select_box.y();
-                        if (selboxw * selboxh > 25.f) {
+                        float selboxSize = (event.button.x - select_box.x()) * (event.button.y - select_box.y());
+                        selboxSize = selboxSize < 0.f ? selboxSize * -1.f : selboxSize;
+                        if (selboxSize > 20.f && selecting) {
                             agentPlanner->select_agent_box(select_box.x(), select_box.y(), event.button.x, event.button.y);
                         }
                         else {

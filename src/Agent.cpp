@@ -44,6 +44,12 @@ namespace RVO {
 		cohesion_factor_ = 0.4f;
 		alignment_factor_ = 0.3f;
 		seek_factor_ = 8.f;
+
+		is_selected_ = false;
+	}
+
+	void Agent::set_selected(bool selected) {
+		is_selected_ = selected;
 	}
 
 	void Agent::computeNeighbors()

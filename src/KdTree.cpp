@@ -44,6 +44,10 @@ namespace RVO {
 		deleteObstacleTree(obstacleTree_);
 	}
 
+	void KdTree::setMaxAgentRadius(float newRadius) {
+		maxAgentRadiusSq_ = newRadius*newRadius;
+	}
+
 	void KdTree::buildAgentTree()
 	{
 		if (agents_.size() < sim_->agents_.size()) {
@@ -91,7 +95,15 @@ namespace RVO {
 				}
 
 				if (left < right) {
-					std::swap(agents_[left], agents_[right - 1]);
+					// WARNING: possibly important to RVO!
+					// this swap causes the point_in_agent_recursive function to
+					// return the wrong agent at times.. not sure what this does for
+					// the RVO sim as it seems to work fine without this
+					// possible solution TODO:
+					// add ID var to AgentTreeNode
+					// that should stop swap from interfering with selecting the wrong
+					// agent.
+					//std::swap(agents_[left], agents_[right - 1]);
 					++left;
 					--right;
 				}
@@ -254,12 +266,14 @@ namespace RVO {
 		queryObstacleTreeRecursive(agent, rangeSq, obstacleTree_);
 	}
 
-	size_t KdTree::agentOnPoint(Vector2& point) const {
-		return agentOnPointRecursive(point, 0);
+	size_t KdTree::getAgentInPoint(Vector2& point) {
+		size_t agent_on_point = -1;
+		getAgentInPointRecursive(point, agent_on_point, 0);
+		return agent_on_point;
 	}
 
-	void KdTree::agentsOnRectangle(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright) const {
-		agentsOnRectangleRecursive(agents, topleft, bottomright, 0);
+	void KdTree::getAgentsInRectangle(Vector2& topleft, Vector2& bottomright, std::vector<size_t>* agents) const {
+		getAgentsInRectangleRecursive(topleft, bottomright, agents, 0);
 	}
 
 	void KdTree::deleteObstacleTree(ObstacleTreeNode *node)
@@ -337,39 +351,75 @@ namespace RVO {
 	}
 
 	// should return the agent ID of the first agent whose radius overlaps the given point
-	size_t KdTree::agentOnPointRecursive(Vector2& point, size_t node) const {
-		// copied from QueryAgentTreeRecursive
-		// this should be all agents in a single kdtree leaf
+	void KdTree::getAgentInPointRecursive(Vector2& point, size_t& retval, size_t node) const {
+		// if we've reached a leaf-node
+		// check all agents in that leaf-node
 		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
 			for (size_t i = agentTree_[node].begin; i < agentTree_[node].end; ++i) {
-				// in stead of inserting neighbours, lets check to see if any agents
-				// intersect with the Vector2 point
-				//agent->insertAgentNeighbor(agents_[i], rangeSq);
-				if (absSq(agents_[i]->position_ - point) < agents_[i]->radius_) {
+				// if collision; set the retval and exit recursion
+				float radiusToCheck = agents_[i]->radius_;
+				if (absSq(agents_[i]->position_ - point) < (radiusToCheck*radiusToCheck)) {
 					// we clicked this agent
-					return i;
+					retval = i;
+					return;
 				}
 			}
 		}
 		else {
-			if (point.x() > agentTree_[agentTree_[node].left].minX &&
-				point.x() < agentTree_[agentTree_[node].left].maxX &&
-				point.y() > agentTree_[agentTree_[node].left].minY && 
-				point.y() < agentTree_[agentTree_[node].left].maxY ) {
-				return agentOnPointRecursive(point, agentTree_[node].left);
+			// we use maxAgentRadius_ to determine how far over the border of the tree-nodes we need to check for 
+
+			const float distSqLeft = sqr(std::max(0.0f, agentTree_[agentTree_[node].left].minX - point.x())) + sqr(std::max(0.0f, point.x() - agentTree_[agentTree_[node].left].maxX)) + sqr(std::max(0.0f, agentTree_[agentTree_[node].left].minY - point.y())) + sqr(std::max(0.0f, point.y() - agentTree_[agentTree_[node].left].maxY));
+			const float distSqRight = sqr(std::max(0.0f, agentTree_[agentTree_[node].right].minX - point.x())) + sqr(std::max(0.0f, point.x() - agentTree_[agentTree_[node].right].maxX)) + sqr(std::max(0.0f, agentTree_[agentTree_[node].right].minY - point.y())) + sqr(std::max(0.0f, point.y() - agentTree_[agentTree_[node].right].maxY));
+
+			if (distSqLeft < distSqRight) {
+				if (distSqLeft < maxAgentRadiusSq_) {
+					getAgentInPointRecursive(point, retval, agentTree_[node].left);
+
+					if (distSqRight < maxAgentRadiusSq_) {
+						getAgentInPointRecursive(point, retval, agentTree_[node].right);
+					}
+				}
 			}
-			else if (point.x() > agentTree_[agentTree_[node].right].minX &&
-				point.x() < agentTree_[agentTree_[node].right].maxX &&
-				point.y() > agentTree_[agentTree_[node].right].minY &&
-				point.y() < agentTree_[agentTree_[node].right].maxY) {
-				return agentOnPointRecursive(point, agentTree_[node].right);
+			else {
+				if (distSqRight < maxAgentRadiusSq_) {
+					getAgentInPointRecursive(point, retval, agentTree_[node].right);
+
+					if (distSqLeft < maxAgentRadiusSq_) {
+						getAgentInPointRecursive(point, retval, agentTree_[node].left);
+					}
+				}
 			}
+
 		}
-		return -1;
 	}
 
-	void KdTree::agentsOnRectangleRecursive(std::vector<size_t>* agents, Vector2& topleft, Vector2& bottomright, size_t node) const {
-
+	void KdTree::getAgentsInRectangleRecursive(Vector2& topleft, Vector2& bottomright, std::vector<size_t>* agents, size_t node) const {
+		// if we've reached a leaf-node
+		// check which agents of the leaf-node are within the rectangle
+		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
+			for (size_t i = agentTree_[node].begin; i < agentTree_[node].end; ++i) {
+				if (agents_[i]->position_.x() > topleft.x() &&
+					agents_[i]->position_.x() < bottomright.x() &&
+					agents_[i]->position_.y() > topleft.y() &&
+					agents_[i]->position_.y() < bottomright.y()) {
+					agents->push_back(i);
+				}
+			}
+		}
+		else {
+			if (agentTree_[agentTree_[node].left].minX < bottomright.x() &&
+				agentTree_[agentTree_[node].left].maxX > topleft.x() &&
+				agentTree_[agentTree_[node].left].minY < bottomright.y() &&
+				agentTree_[agentTree_[node].left].maxY > topleft.y()) {
+				getAgentsInRectangleRecursive(topleft, bottomright, agents, agentTree_[node].left);
+			}
+			if (agentTree_[agentTree_[node].right].minX < bottomright.x() &&
+				agentTree_[agentTree_[node].right].maxX > topleft.x() &&
+				agentTree_[agentTree_[node].right].minY < bottomright.y() &&
+				agentTree_[agentTree_[node].right].maxY > topleft.y()) {
+				getAgentsInRectangleRecursive(topleft, bottomright, agents, agentTree_[node].right);
+			}
+		}
 	}
 
 	bool KdTree::queryVisibility(const Vector2 &q1, const Vector2 &q2, float radius) const
@@ -416,6 +466,9 @@ namespace RVO {
 	}
 
 	void KdTree::drawKdTreeRecursively(Scribe* scribe, size_t node) {
+		if (agentTree_.size() == 0) {
+			return;
+		}
 		scribe->draw_rectangle(agentTree_[node].minX, agentTree_[node].minY, agentTree_[node].maxX, agentTree_[node].maxY);
 		if (agentTree_[node].end - agentTree_[node].begin > MAX_LEAF_SIZE) {
 			drawKdTreeRecursively(scribe, agentTree_[node].left);
