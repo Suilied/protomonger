@@ -84,40 +84,33 @@ void AgentManager::spawn_agent(Vector2 position, Vector2 goal, bool selected) {
     // make sure to keep these structures synced.
     _rvoSim->addAgent(position);
     _agent_goals.push_back(goal);
-    _selected_agents.push_back(std::pair<bool, int>(selected, _agent_goals.size()-1));
+    //_selected_agents.push_back(std::pair<bool, int>(selected, _agent_goals.size()-1));
 }
 
-void AgentManager::set_agent_target(float x, float y) {
+void AgentManager::set_selected_agent_targets(float x, float y) {
     // figure out which agents to move
-    int agent_count = 0;
-    std::vector<int> selected_agents;
+    int agent_count = _selected_agents.size();
 
-    for (int i = 0; i < _selected_agents.size(); i++) {
-        // dont clear stuff, merely re-assign stuff
-        if (_selected_agents[i].first) {
-            selected_agents.push_back()
-            agent_count++;
-        }
-    }
-
-
-    // clear everything
-    _agent_goals.clear();
+    // set up the circle packer
     _circlePacker->clear();
-
     _circlePacker->set_center(x,y);
-    //int agent_count = _rvoSim->getNumAgents();
 
     // setup and pack individual targets
+    // incidentally, sync _circlePacker with agents vector
     for (int i = 0; i < agent_count; i++) {
-        _circlePacker->add_circle(_rvoSim->getAgentRadius(i));
+        _circlePacker->add_circle(_selected_agents[i]->radius_);
     }
     _circlePacker->pack();
 
     // assign targets to agents
     for (int i = 0; i < agent_count; i++) {
-        Vector2 agent_goal = _circlePacker->get_circle_position(i);
-        _agent_goals.push_back(agent_goal);
+        _agent_goals[_selected_agents[i]->id_] = _circlePacker->get_circle_position(i);
+    }
+}
+
+void AgentManager::stop_selected_agents() {
+    for (int i = 0; i < _selected_agents.size(); i++) {
+        _agent_goals[_selected_agents[i]->id_] = _rvoSim->getAgentPosition(_selected_agents[i]->id_);
     }
 }
 
@@ -184,35 +177,35 @@ void AgentManager::update(float deltaTime) {
     }
 }
 
-void AgentManager::select_agent_point(float x, float y, std::vector<int>* agents) {
-    // check to see if actually clicked on an agent, and if so: which one
-    // add the agent to the "selected units" group
+void AgentManager::reset_selection() {
     for (int i = 0; i < _selected_agents.size(); i++) {
-        _selected_agents[i].first = false;
+        _selected_agents[i]->group_id_ = -1;
     }
+    _selected_agents.clear();
+}
 
-    int agentId = _rvoSim->getAgentInPoint(Vector2(x, y));
-    if (agentId != -1) {
+void AgentManager::select_agent_point(float x, float y) {
+    reset_selection();
+
+    RVO::Agent* agent = _rvoSim->getAgentInPoint(Vector2(x, y));
+    if (agent != nullptr) {
         // set the current selection to this agent
         // and also draw the selected agents in a different color
-        _selected_agents[agentId].first = true;
+        agent->group_id_ = 0;
+        _selected_agents.push_back(agent);
     }
 }
 
-void AgentManager::select_agent_box(float x0, float y0, float x1, float y1, std::vector<int>* agents) {
-    for (int i = 0; i < _selected_agents.size(); i++) {
-        _selected_agents[i].first = false;
-    }
-    std::vector<size_t> selectAgents;
+void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
+    reset_selection();
 
     Vector2 topleft = Vector2(std::min(x0, x1), std::min(y0, y1));
     Vector2 bottomright = Vector2(std::max(x0, x1), std::max(y0, y1));
 
-    _rvoSim->getAgentsInRectangle(topleft, bottomright, &selectAgents);
-    for (int i = 0; i < selectAgents.size(); i++) {
-        _selected_agents[selectAgents[i]].first = true;
+    _rvoSim->getAgentsInRectangle(topleft, bottomright, &_selected_agents);
+    for (int i = 0; i < _selected_agents.size(); i++) {
+        _selected_agents[i]->group_id_ = 0;
     }
-    selectAgents.clear();
 }
 
 void AgentManager::debug_draw(Scribe* scribe) {
@@ -228,13 +221,16 @@ void AgentManager::debug_draw(Scribe* scribe) {
     }
 
     // Draw RVO agents
+    std::vector<RVO::Agent*>* agentvec = _rvoSim->getAgentVector();
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
         Vector2 p = _rvoSim->getAgentPosition(i);
         float r0 = _rvoSim->getAgentRadius(i);
-        if( _selected_agents[i].first )
+        if (agentvec->at(i)->group_id_ == 0) {
             scribe->set_draw_color(Color::GREEN);
-        else
+        }
+        else {
             scribe->set_draw_color(Color::YELLOW);
+        }
         scribe->draw_circle(p.x(), p.y(), std::ceil(r0));
     }
 

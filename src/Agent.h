@@ -53,8 +53,6 @@ namespace RVO {
 		 */
 		explicit Agent(RVOSimulator *sim);
 
-		void set_selected(bool selected);
-
 		/**
 		 * \brief      Computes the neighbors of this agent.
 		 */
@@ -103,7 +101,6 @@ namespace RVO {
 		std::vector<Line> orcaLines_;
 		Vector2 position_;
 		Vector2 prefVelocity_;
-		float radius_;
 		float flocking_radius_;
 		RVOSimulator *sim_;
 		float timeHorizon_;
@@ -118,13 +115,14 @@ namespace RVO {
 		float alignment_factor_;
 		float seek_factor_;
 
-		// AgentManagement variables
-		bool is_selected_;
-
 		// pathfindign variables
 		Vector2 seek_target_;
 
+	// public variables (keep to a minimum)
+	public:
+		float radius_;
 		size_t id_;
+		size_t group_id_;	// 0 == "no group"
 
 		friend class KdTree;
 		friend class RVOSimulator;

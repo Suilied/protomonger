@@ -103,6 +103,10 @@ int main(int argc, char* argv[])
                                 mousemode = 0;
                             break;
                         case SDLK_s:
+                            // stop selected agents from moving
+                            agentPlanner->stop_selected_agents();
+                            break;
+                        case SDLK_h:
                             // stop all agents from moving
                             agentPlanner->stop_all_agents();
                             break;
@@ -130,7 +134,7 @@ int main(int argc, char* argv[])
                         agentPlanner->clear_waypoints();
                     }
                     if (event.button.button == SDL_BUTTON_RIGHT) {
-                        agentPlanner->set_agent_target(event.button.x, event.button.y);
+                        agentPlanner->set_selected_agent_targets(event.button.x, event.button.y);
                     }
                     break;
                 case SDL_MOUSEBUTTONUP:

@@ -598,10 +598,10 @@ namespace RVO {
 		 */
 		void setTimeStep(float timeStep);
 
-		bool getAgentSelected(size_t agentId);
-		size_t getAgentInPoint(Vector2 point);
-		void getAgentsInRectangle(Vector2 topleft, Vector2 bottomright, std::vector<size_t>* agents);
+		Agent* getAgentInPoint(Vector2 point);
+		void getAgentsInRectangle(Vector2 topleft, Vector2 bottomright, std::vector<Agent*>* agents);
 		void drawKdTree(Scribe* scribe);
+		std::vector<Agent*>* getAgentVector();
 
 	private:
 		std::vector<Agent *> agents_;

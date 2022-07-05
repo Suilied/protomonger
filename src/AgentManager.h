@@ -5,6 +5,7 @@
 #include "scribe.h"
 #include "circlepacker.h"
 #include "RVO.h"
+#include "Agent.h"
 
 struct AgentGoal {
     int agentId;
@@ -22,16 +23,6 @@ struct Waypoint {
     float radius_growth;
 };
 
-class AgentPlan { // AgentGroup x table
-private:
-    std::vector<int> agents;
-    std::vector<Vector2> current_goals;
-    std::vector<Waypoint> waypoints;
-
-public:
-    AgentPlan();
-    ~AgentPlan();
-};
 
 class AgentManager {
 private:
@@ -44,11 +35,13 @@ private:
     * agents that have received a movement order will be put in a plan-group
     * agents that have been selected are in the _selected_agents vector.
     */
-    std::vector<std::pair<bool, int>> _selected_agents;
-    std::vector<AgentPlan*> _agent_plans;
+    // these agents have been selected by the player
+    std::vector<RVO::Agent*> _selected_agents;
+    size_t _group_count;
 
     bool rvof_reached_goals();
     void update_rvof_velocities();
+    void reset_selection();
 
     // debug draw flags
     bool renderKdTree = true;
@@ -59,12 +52,13 @@ public:
 	void new_waypoint(float x, float y);
     void clear_waypoints();
 
-    void set_agent_target(float x, float y);
+    void set_selected_agent_targets(float x, float y);
+    void stop_selected_agents();
     void stop_all_agents();
     void spawn_agent(Vector2 position, Vector2 goal = Vector2(), bool selected = false);
 
-    void select_agent_point(float x, float y, std::vector<int>* agents);
-    void select_agent_box(float x0, float y0, float x1, float y1, std::vector<int>* agents);
+    void select_agent_point(float x, float y);
+    void select_agent_box(float x0, float y0, float x1, float y1);
 
     // demo / debug functionality
     void spawn_agents_circular(Vector2 center_vec, int agent_count);

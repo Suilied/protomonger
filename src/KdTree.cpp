@@ -266,13 +266,13 @@ namespace RVO {
 		queryObstacleTreeRecursive(agent, rangeSq, obstacleTree_);
 	}
 
-	size_t KdTree::getAgentInPoint(Vector2& point) {
-		size_t agent_on_point = -1;
+	RVO::Agent* KdTree::getAgentInPoint(Vector2& point) {
+		RVO::Agent* agent_on_point = nullptr;
 		getAgentInPointRecursive(point, agent_on_point, 0);
 		return agent_on_point;
 	}
 
-	void KdTree::getAgentsInRectangle(Vector2& topleft, Vector2& bottomright, std::vector<size_t>* agents) const {
+	void KdTree::getAgentsInRectangle(Vector2& topleft, Vector2& bottomright, std::vector<Agent*>* agents) const {
 		getAgentsInRectangleRecursive(topleft, bottomright, agents, 0);
 	}
 
@@ -351,7 +351,7 @@ namespace RVO {
 	}
 
 	// should return the agent ID of the first agent whose radius overlaps the given point
-	void KdTree::getAgentInPointRecursive(Vector2& point, size_t& retval, size_t node) const {
+	void KdTree::getAgentInPointRecursive(Vector2& point, Agent* retval, size_t node) const {
 		// if we've reached a leaf-node
 		// check all agents in that leaf-node
 		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
@@ -360,7 +360,7 @@ namespace RVO {
 				float radiusToCheck = agents_[i]->radius_;
 				if (absSq(agents_[i]->position_ - point) < (radiusToCheck*radiusToCheck)) {
 					// we clicked this agent
-					retval = i;
+					retval = agents_[i];
 					return;
 				}
 			}
@@ -393,7 +393,7 @@ namespace RVO {
 		}
 	}
 
-	void KdTree::getAgentsInRectangleRecursive(Vector2& topleft, Vector2& bottomright, std::vector<size_t>* agents, size_t node) const {
+	void KdTree::getAgentsInRectangleRecursive(Vector2& topleft, Vector2& bottomright, std::vector<Agent*>* agents, size_t node) const {
 		// if we've reached a leaf-node
 		// check which agents of the leaf-node are within the rectangle
 		if (agentTree_[node].end - agentTree_[node].begin <= MAX_LEAF_SIZE) {
@@ -402,7 +402,7 @@ namespace RVO {
 					agents_[i]->position_.x() < bottomright.x() &&
 					agents_[i]->position_.y() > topleft.y() &&
 					agents_[i]->position_.y() < bottomright.y()) {
-					agents->push_back(i);
+					agents->push_back(agents_[i]);
 				}
 			}
 		}
