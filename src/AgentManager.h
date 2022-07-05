@@ -38,13 +38,14 @@ private:
     // these agents have been selected by the player
     std::vector<RVO::Agent*> _selected_agents;
     size_t _group_count;
+    bool _additive_selection;
 
     bool rvof_reached_goals();
     void update_rvof_velocities();
     void reset_selection();
 
     // debug draw flags
-    bool renderKdTree = true;
+    bool renderKdTree = false;
 
 public:
     void init();
@@ -52,6 +53,7 @@ public:
 	void new_waypoint(float x, float y);
     void clear_waypoints();
 
+    void set_additive_selection(bool active);
     void set_selected_agent_targets(float x, float y);
     void stop_selected_agents();
     void stop_all_agents();

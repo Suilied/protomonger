@@ -9,7 +9,7 @@
 #define DEFAULT_FONT ".\\assets\\fonts\\Hack-Regular.ttf"
 
 enum Color {
-    BLACK,
+    BLACK = 0,
     WHITE,
     RED,
     YELLOW,

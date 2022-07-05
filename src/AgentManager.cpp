@@ -7,6 +7,7 @@
 void AgentManager::init() {
     _rvoSim = new RVO::RVOSimulator();
     _circlePacker = new CirclePacker();
+    _additive_selection = false;
 }
 
 void AgentManager::spawn_agents_circular(Vector2 center_vec, int agent_count) {
@@ -85,6 +86,10 @@ void AgentManager::spawn_agent(Vector2 position, Vector2 goal, bool selected) {
     _rvoSim->addAgent(position);
     _agent_goals.push_back(goal);
     //_selected_agents.push_back(std::pair<bool, int>(selected, _agent_goals.size()-1));
+}
+
+void AgentManager::set_additive_selection(bool active) {
+    _additive_selection = active;
 }
 
 void AgentManager::set_selected_agent_targets(float x, float y) {
@@ -179,32 +184,36 @@ void AgentManager::update(float deltaTime) {
 
 void AgentManager::reset_selection() {
     for (int i = 0; i < _selected_agents.size(); i++) {
-        _selected_agents[i]->group_id_ = -1;
+        _selected_agents[i]->debug_draw_color_ = Color::YELLOW;
     }
     _selected_agents.clear();
 }
 
 void AgentManager::select_agent_point(float x, float y) {
-    reset_selection();
+    if (!_additive_selection) {
+        reset_selection();
+    }
 
     RVO::Agent* agent = _rvoSim->getAgentInPoint(Vector2(x, y));
     if (agent != nullptr) {
         // set the current selection to this agent
         // and also draw the selected agents in a different color
-        agent->group_id_ = 0;
+        agent->debug_draw_color_ = Color::GREEN;
         _selected_agents.push_back(agent);
     }
 }
 
 void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
-    reset_selection();
-
+    if (!_additive_selection) {
+        reset_selection();
+    }
+    
     Vector2 topleft = Vector2(std::min(x0, x1), std::min(y0, y1));
     Vector2 bottomright = Vector2(std::max(x0, x1), std::max(y0, y1));
 
     _rvoSim->getAgentsInRectangle(topleft, bottomright, &_selected_agents);
     for (int i = 0; i < _selected_agents.size(); i++) {
-        _selected_agents[i]->group_id_ = 0;
+        _selected_agents[i]->debug_draw_color_ = Color::GREEN;
     }
 }
 
@@ -222,15 +231,11 @@ void AgentManager::debug_draw(Scribe* scribe) {
 
     // Draw RVO agents
     std::vector<RVO::Agent*>* agentvec = _rvoSim->getAgentVector();
+
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
         Vector2 p = _rvoSim->getAgentPosition(i);
         float r0 = _rvoSim->getAgentRadius(i);
-        if (agentvec->at(i)->group_id_ == 0) {
-            scribe->set_draw_color(Color::GREEN);
-        }
-        else {
-            scribe->set_draw_color(Color::YELLOW);
-        }
+        scribe->set_draw_color(Color(_rvoSim->getAgentDebugDrawColor(i)));
         scribe->draw_circle(p.x(), p.y(), std::ceil(r0));
     }
 

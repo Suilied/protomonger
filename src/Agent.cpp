@@ -46,7 +46,8 @@ namespace RVO {
 		seek_factor_ = 8.f;
 
 		// agent manager vars
-		group_id_ = 0;	// 0 == "no group"
+		team_id_ = 0;
+		debug_draw_color_ = 3;
 	}
 
 	void Agent::computeNeighbors()

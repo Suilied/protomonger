@@ -122,7 +122,8 @@ namespace RVO {
 	public:
 		float radius_;
 		size_t id_;
-		size_t group_id_;	// 0 == "no group"
+		size_t team_id_;
+		int debug_draw_color_;
 
 		friend class KdTree;
 		friend class RVOSimulator;

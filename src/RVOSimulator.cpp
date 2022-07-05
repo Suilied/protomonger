@@ -355,6 +355,14 @@ namespace RVO {
 		return &agents_;
 	}
 
+	void RVOSimulator::setAgentDebugDrawColor(size_t agentId, int color) {
+		agents_[agentId]->debug_draw_color_ = color;
+	}
+
+	int RVOSimulator::getAgentDebugDrawColor(size_t agentId) {
+		return agents_[agentId]->debug_draw_color_;
+	}
+
 	void RVOSimulator::drawKdTree(Scribe* scribe) {
 		kdTree_->drawKdTree(scribe);
 	}

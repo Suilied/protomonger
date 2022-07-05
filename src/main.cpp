@@ -113,6 +113,18 @@ int main(int argc, char* argv[])
                         case SDLK_ESCAPE:
                             exit_program = SDL_TRUE;
                             break;
+                        case SDLK_LSHIFT:
+                        case SDLK_RSHIFT:
+                            agentPlanner->set_additive_selection(true);
+                            break;
+                    }
+                    break;
+                case SDL_KEYUP:
+                    switch (event.key.keysym.sym) {
+                        case SDLK_LSHIFT:
+                        case SDLK_RSHIFT:
+                            agentPlanner->set_additive_selection(false);
+                            break;
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
@@ -138,18 +150,20 @@ int main(int argc, char* argv[])
                     }
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    if (mousemode == MouseMode::select) {
-                        // if area of selection box is > 5x5 px
-                        float selboxSize = (event.button.x - select_box.x()) * (event.button.y - select_box.y());
-                        selboxSize = selboxSize < 0.f ? selboxSize * -1.f : selboxSize;
-                        if (selboxSize > 20.f && selecting) {
-                            agentPlanner->select_agent_box(select_box.x(), select_box.y(), event.button.x, event.button.y);
+                    if (event.button.button == SDL_BUTTON_LEFT) {
+                        if (mousemode == MouseMode::select) {
+                            // if area of selection box is > 5x5 px
+                            float selboxSize = (event.button.x - select_box.x()) * (event.button.y - select_box.y());
+                            selboxSize = selboxSize < 0.f ? selboxSize * -1.f : selboxSize;
+                            if (selboxSize > 20.f && selecting) {
+                                agentPlanner->select_agent_box(select_box.x(), select_box.y(), event.button.x, event.button.y);
+                            }
+                            else {
+                                agentPlanner->select_agent_point(event.button.x, event.button.y);
+                            }
+                            selecting = false;
+                            select_box = Vector2();
                         }
-                        else {
-                            agentPlanner->select_agent_point(event.button.x, event.button.y);
-                        }
-                        selecting = false;
-                        select_box = Vector2();
                     }
                     break;
                 case SDL_MOUSEMOTION:

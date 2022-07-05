@@ -600,6 +600,9 @@ namespace RVO {
 
 		Agent* getAgentInPoint(Vector2 point);
 		void getAgentsInRectangle(Vector2 topleft, Vector2 bottomright, std::vector<Agent*>* agents);
+
+		void setAgentDebugDrawColor(size_t agentId, int color);
+		int getAgentDebugDrawColor(size_t agentId);
 		void drawKdTree(Scribe* scribe);
 		std::vector<Agent*>* getAgentVector();
 
