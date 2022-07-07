@@ -92,9 +92,50 @@ void AgentManager::set_additive_selection(bool active) {
     _additive_selection = active;
 }
 
+//public bool isLeft(Point a, Point b, Point c) {
+//    return ((b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X)) > 0;
+//}
+
 void AgentManager::set_selected_agent_targets(float x, float y) {
     // figure out which agents to move
     int agent_count = _selected_agents.size();
+
+    // get average x,y
+    Vector2 avgpos = Vector2();
+    for (int i = 0; i < agent_count; i++) {
+        avgpos += _rvoSim->getAgentPosition(_selected_agents[i]->id_);
+    }
+    avgpos /= agent_count;
+
+    // see if we have to corner after reaching the next waypoint
+    if (_path.size() > 1) {
+        // see if the corner will be sharper than 90deg
+        Vector2 avgpos_to_path0vec = Vector2(_path[0]->x, _path[0]->y) - avgpos;
+        Vector2 path0_to_path1vec = Vector2(_path[1]->x, _path[1]->y) - Vector2(_path[0]->x, _path[0]->y);
+        Vector2 path1_to_avgposvec = avgpos - Vector2(_path[1]->x, _path[1]->y);
+
+        // the corner is not as sharp and we can offset the target a bit
+        if (dot(avgpos_to_path0vec, path0_to_path1vec) > 0.f) {
+            // now we want to get the normal of path0-to-path1-vec (hopefully it has the correct sign, otherwise change sign)
+            // place it on the tip of avgpos-to-path0 vec 
+            // and have its magnitude be big enough so that its radius is at least equal to the radius of the selected units combined
+        }
+        else {  // the corner is sharper than 90deg; we must offset 
+            // now we want to get the center of the triangle formed by avgpos-to-path0, path0-to-path1 & path1-to-avgpos
+            // from there we make a new vec => centervec-to-path0
+            // and add another centervec-to-path0 vec with a magnitude that is at least equal to the radius of the selected units combined
+        }
+    }
+
+    // do pathfinding algo
+    if (_path.size() != 0) {
+        // we have a path
+        x = _path[0]->x;
+        y = _path[0]->y;
+        // this is slow, consider consuming the path in reverse from the pathfinder algo
+        // then we can use _path.pop_back();
+        _path.erase(_path.begin());
+    }
 
     // set up the circle packer
     _circlePacker->clear();

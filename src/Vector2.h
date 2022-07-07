@@ -316,6 +316,31 @@
 		return vector1.x() * Vector2.y() - vector1.y() * Vector2.x();
 	}
 
+	/*
+	* \relates	Vector2
+	* \brief	Computes the dot product of 2 vectors
+	*/
+	inline float dot(const Vector2& vec1, const Vector2& vec2) {
+		return (vec1.x() * vec2.x()) + (vec1.y() * vec2.y());
+	}
+
+	/*
+	* \relates	Vector2
+	* \brief	Rotates vector 90 degrees, clockwise or counterclockwise
+	* \param	vector
+	*/
+	inline Vector2 rotate90(const Vector2& vec, bool clockwise=false) {
+		return clockwise ? Vector2(vec.y(), -vec.x()) : Vector2(-vec.y(), vec.x());
+	}
+
+	/*
+	* \relates	Vector2
+	* \brief	checks if vector-point is to the left or right of vector-line
+	*/
+	inline bool pointOnRight(const Vector2& line0, const Vector2& line1, const Vector2& point) {
+		return ((line1.x() - line0.x()) * (point.y() - line0.y()) - (line1.y() - line0.y()) * (point.x()-line0.x()) ) < 0.f;
+	}
+
 	/**
 	 * \relates    Vector2
 	 * \brief      Computes the normalization of the specified two-dimensional

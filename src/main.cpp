@@ -80,6 +80,18 @@ int main(int argc, char* argv[])
     unsigned int total_time = SDL_GetTicks();
     unsigned int frame_time = 0;
 
+
+    // TODO: 
+    // make units follow waypoints to the end
+    // when consuming a waypoint and deciding on the next:
+    // - calculate offset for cornering
+    // - using an approximate total-size calculation
+    // implement unit state
+    // implement "good enough" when trying to reach destination
+    // - this is based on state + team
+    // - solve for intermediate waypoints as well, 
+    //   i.e. the units move as a whole
+    // implement "pushing" that depends on state + team
     while(!exit_program) {
         // first, get the time between frames
         unsigned int new_time = SDL_GetTicks();
@@ -129,6 +141,8 @@ int main(int argc, char* argv[])
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
+                        // TODO:
+                        // right click on waypoint will set that as the destination of the selected group.
                         switch (mousemode) {
                         case MouseMode::select:
                             select_box = Vector2(event.button.x, event.button.y);
