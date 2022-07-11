@@ -47,7 +47,8 @@ void Scribe::draw_text(int x, int y, const char* t) {
 
     int w, h;
     TTF_SizeText(_font, t, &w, &h);
-    _msg_tex = SDL_CreateTextureFromSurface(_renderer, _msg_sur);
+    _msg_tex = SDL_CreateTextureFromSurface(_renderer, nullptr);
+    SDL_FreeSurface(_msg_sur);
 
     SDL_Rect msg_rect;
     msg_rect.x = x;
@@ -56,7 +57,6 @@ void Scribe::draw_text(int x, int y, const char* t) {
     msg_rect.h = h;
 
     SDL_RenderCopy(_renderer, _msg_tex, NULL, &msg_rect);
-    SDL_FreeSurface(_msg_sur);
     SDL_DestroyTexture(_msg_tex);
 }
 
@@ -100,6 +100,8 @@ Scribe::Scribe(SDL_Renderer* renderer) {
 }
 
 Scribe::~Scribe() {
+    TTF_CloseFont(_font);
+    TTF_Quit();
     SDL_FreeSurface(_msg_sur);
     SDL_DestroyTexture(_msg_tex);
 }

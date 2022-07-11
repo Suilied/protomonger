@@ -99,6 +99,7 @@ namespace RVO {
 		Vector2 newVelocity_;
 		std::vector<std::pair<float, const Obstacle *> > obstacleNeighbors_;
 		std::vector<Line> orcaLines_;
+		float radius_;
 		Vector2 position_;
 		Vector2 prefVelocity_;
 		float flocking_radius_;
@@ -118,15 +119,13 @@ namespace RVO {
 		// pathfindign variables
 		Vector2 seek_target_;
 
-	// public variables (keep to a minimum)
-	public:
-		float radius_;
 		size_t id_;
 		size_t team_id_;
 		int debug_draw_color_;
 
 		friend class KdTree;
 		friend class RVOSimulator;
+		friend class AgentManager;
 	};
 
 	/**

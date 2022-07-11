@@ -218,6 +218,7 @@ int main(int argc, char* argv[])
         scribe->draw();
     }
 
+    SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
 }

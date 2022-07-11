@@ -51,6 +51,9 @@
  */
 const float RVO_EPSILON = 0.00001f;
 
+// we need to define AgentManager here so we can befriend it in the Agent class
+class AgentManager;
+
 namespace RVO {
 	class Agent;
 	class Obstacle;
