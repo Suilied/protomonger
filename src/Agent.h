@@ -123,6 +123,10 @@ namespace RVO {
 		size_t team_id_;
 		int debug_draw_color_;
 
+		AgentGroup* agent_group_;
+		std::vector<Vector2> route_;
+		int destination_;
+
 		friend class KdTree;
 		friend class RVOSimulator;
 		friend class AgentManager;

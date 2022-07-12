@@ -23,11 +23,16 @@ struct Waypoint {
     float radius_growth;
 };
 
+struct AgentGroup {
+    std::vector<RVO::Agent*> _agents;
+    std::vector<Vector2> _route;
+};
 
 class AgentManager {
 private:
 	std::vector<Waypoint*> _path;
     RVO::RVOSimulator* _rvoSim;
+    std::vector<RVO::Agent*>* _rvo_agents;
     CirclePacker* _circlePacker;
     std::vector<Vector2> _agent_goals;
 
@@ -37,11 +42,13 @@ private:
     */
     // these agents have been selected by the player
     std::vector<RVO::Agent*> _selected_agents;
+    std::vector<AgentGroup*> _agentgroups;
     size_t _group_count;
     bool _additive_selection;
 
     bool rvof_reached_goals();
     void update_rvof_velocities();
+    void update_agent_groups(float deltaTime);
     void reset_selection();
 
     // debug draw flags

@@ -6,6 +6,8 @@
 
 void AgentManager::init() {
     _rvoSim = new RVO::RVOSimulator();
+    _rvo_agents = _rvoSim->getAgentVector();
+
     _circlePacker = new CirclePacker();
     _additive_selection = false;
 }
@@ -208,7 +210,30 @@ void AgentManager::update_rvof_velocities() {
     }
 }
 
+void destination_status(std::vector<RVO::Agent*>* agents) {
+    // check if most agents have reached their destination
+    // close == (goal - pos).length < agent.radius*3.0
+    // reached == (goal - pos).length < agent.radius
+    // if all agents are close and at least 1 agent has reached his goal:
+    // we return "true" as in: we've reached the destination, give us the next
+    //for (int i = 0; i < agents->size(); i++) {
+    //    agents->at(i)->pos
+    //}
+}
+
+void AgentManager::update_agent_groups(float deltaTime) {
+    for (int i = 0; i < _agentgroups.size(); i++) {
+        //destination_status(&_agentgroups[i]->_agents);
+        for (int j = 0; j < _agentgroups[i]->_agents.size(); j++) {
+            _agentgroups[i]->_agents[j];
+        }
+    }
+}
+
 void AgentManager::update(float deltaTime) {
+    // update agent_groups
+    update_agent_groups(deltaTime);
+
     // do the RVO thing
     if (!rvof_reached_goals()) {
         _rvoSim->setTimeStep(deltaTime);
