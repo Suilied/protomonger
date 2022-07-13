@@ -338,6 +338,7 @@ namespace RVO {
 		 */
 		float getAgentRadius(size_t agentNo) const;
 		float getAgentFlockingRadius(size_t agentNo) const;
+		size_t getAgentGoalStatus(size_t agentNo) const;
 
 		/**
 		 * \brief      Returns the time horizon of a specified agent.

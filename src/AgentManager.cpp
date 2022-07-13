@@ -4,6 +4,10 @@
 #define PIE 3.14159265358979323846f
 #endif
 
+#define AT 2
+#define NEAR 1
+#define FAR 0
+
 void AgentManager::init() {
     _rvoSim = new RVO::RVOSimulator();
     _rvo_agents = _rvoSim->getAgentVector();
@@ -84,10 +88,8 @@ void AgentManager::spawn_agent(Vector2 position, Vector2 goal, bool selected) {
     if (goal == Vector2()) {
         goal = position;
     }
-    // make sure to keep these structures synced.
-    _rvoSim->addAgent(position);
-    _agent_goals.push_back(goal);
-    //_selected_agents.push_back(std::pair<bool, int>(selected, _agent_goals.size()-1));
+    size_t agentId = _rvoSim->addAgent(position);
+    _rvo_agents->at(agentId)->goal_ = goal;
 }
 
 void AgentManager::set_additive_selection(bool active) {
@@ -98,14 +100,40 @@ void AgentManager::set_additive_selection(bool active) {
 //    return ((b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X)) > 0;
 //}
 
+// click on map
+// get path from pathfinding algo
+// shortest is a vector<Vector2> of size 1
+
 void AgentManager::set_selected_agent_targets(float x, float y) {
+    // generate path from pathfinding algo
+    // shortest path is a std::vector<Vector2> of size 1
+    // for debugging purposes check if we can use the waypoints.
+    AgentGroup* agentGroup = new AgentGroup();
+    agentGroup->near_goal = 0;
+    agentGroup->at_goal = 0;
+    agentGroup->_agents = _selected_agents;
+
+    if (_path.size() >= 1) {
+        if (absSq(Vector2(x, y) - Vector2(_path[0]->x, _path[0]->y)) < 100.f) {
+            for (int i = 0; i < _path.size(); i++) {
+                agentGroup->_route.push_back(Vector2(_path[i]->x, _path[i]->y));
+            }
+        }
+    }
+    else {
+        //new_waypoint(x, y);
+        agentGroup->_route.push_back(Vector2(x, y));
+    }
+
     // figure out which agents to move
     int agent_count = _selected_agents.size();
 
     // get average x,y
+    // and also assign all selected agents to the same move-group
     Vector2 avgpos = Vector2();
     for (int i = 0; i < agent_count; i++) {
-        avgpos += _rvoSim->getAgentPosition(_selected_agents[i]->id_);
+        _selected_agents[i]->agent_group_ = agentGroup;
+        avgpos += _selected_agents[i]->position_;
     }
     avgpos /= agent_count;
 
@@ -152,21 +180,22 @@ void AgentManager::set_selected_agent_targets(float x, float y) {
 
     // assign targets to agents
     for (int i = 0; i < agent_count; i++) {
-        _agent_goals[_selected_agents[i]->id_] = _circlePacker->get_circle_position(i);
+        //_agent_goals[] = _circlePacker->get_circle_position(i);
+        _rvo_agents->at(_selected_agents[i]->id_)->goal_ = _circlePacker->get_circle_position(i);
     }
 }
 
 void AgentManager::stop_selected_agents() {
     for (int i = 0; i < _selected_agents.size(); i++) {
-        _agent_goals[_selected_agents[i]->id_] = _rvoSim->getAgentPosition(_selected_agents[i]->id_);
+        //_agent_goals[_selected_agents[i]->id_] = _rvoSim->getAgentPosition(_selected_agents[i]->id_);
+        _rvo_agents->at(_selected_agents[i]->id_)->goal_ = _rvo_agents->at(_selected_agents[i]->id_)->position_;
     }
 }
 
 void AgentManager::stop_all_agents() {
     int agent_count = _rvoSim->getNumAgents();
-    _agent_goals.resize(agent_count);
     for (int i = 0; i < agent_count; i++) {
-        _agent_goals[i] = _rvoSim->getAgentPosition(i);
+        _rvo_agents->at(i)->goal_ = _rvo_agents->at(i)->position_;
     }
 }
 
@@ -183,16 +212,10 @@ void AgentManager::new_waypoint(float x, float y) {
     _path.push_back(newWaypoint);
 }
 
+// update_agent_goals()
 bool AgentManager::rvof_reached_goals() {
-    if (_rvoSim->getNumAgents() != _agent_goals.size()) {
-        // we're out of sync
-        return true;
-    }
-
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
-        // check if the distance to the goal is less than the radius of our agent
-        float radius = _rvoSim->getAgentRadius(i);
-        if (absSq(_rvoSim->getAgentPosition(i) - _agent_goals[i]) > radius * radius) {
+        if (_rvoSim->getAgentGoalStatus(i) != AT) {
             return false;
         }
     }
@@ -201,7 +224,7 @@ bool AgentManager::rvof_reached_goals() {
 
 void AgentManager::update_rvof_velocities() {
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
-        Vector2 goalVector = _agent_goals[i] - _rvoSim->getAgentPosition(i);
+        Vector2 goalVector = _rvo_agents->at(i)->goal_ - _rvoSim->getAgentPosition(i);
         float max_speed = _rvoSim->getAgentMaxSpeed(i);
 
         goalVector = normalize(goalVector) * max_speed;
@@ -291,8 +314,8 @@ void AgentManager::debug_draw(Scribe* scribe) {
 
     // draw the goals the agents are trying to reach
     scribe->set_draw_color(Color::WHITE);
-    for (int i = 0; i < _agent_goals.size(); i++) {
-        scribe->draw_circle(_agent_goals[i].x(), _agent_goals[i].y(), _rvoSim->getAgentRadius(i));
+    for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
+        scribe->draw_circle(_rvo_agents->at(i)->goal_.x(), _rvo_agents->at(i)->goal_.y(), _rvoSim->getAgentRadius(i));
     }
 
     // Draw RVO agents

@@ -26,6 +26,8 @@ struct Waypoint {
 struct AgentGroup {
     std::vector<RVO::Agent*> _agents;
     std::vector<Vector2> _route;
+    int near_goal;
+    int at_goal;
 };
 
 class AgentManager {
@@ -34,7 +36,6 @@ private:
     RVO::RVOSimulator* _rvoSim;
     std::vector<RVO::Agent*>* _rvo_agents;
     CirclePacker* _circlePacker;
-    std::vector<Vector2> _agent_goals;
 
     /*
     * agents that have received a movement order will be put in a plan-group

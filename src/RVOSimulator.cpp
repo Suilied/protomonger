@@ -88,6 +88,7 @@ namespace RVO {
 		Agent *agent = new Agent(this);
 
 		agent->position_ = position;
+		agent->goal_ = position;
 		agent->maxNeighbors_ = defaultAgent_->maxNeighbors_;
 		agent->maxSpeed_ = defaultAgent_->maxSpeed_;
 		agent->neighborDist_ = defaultAgent_->neighborDist_;
@@ -263,6 +264,22 @@ namespace RVO {
 
 	float RVOSimulator::getAgentFlockingRadius(size_t agentNo) const {
 		return agents_[agentNo]->flocking_radius_ / agents_[agentNo]->flocking_radius_scale_;
+	}
+
+	// returned values:
+	// 0 still searching / goal position is far away
+	// 1 goal position is nearby
+	// 2 goal position has been reached
+	size_t RVOSimulator::getAgentGoalStatus(size_t agentNo) const {
+		float radiusSq = agents_[agentNo]->radius_ * agents_[agentNo]->radius_;
+		float distSq = absSq(agents_[agentNo]->position_ - agents_[agentNo]->goal_);
+		if ( distSq < radiusSq*4.0f) {
+			if (distSq < radiusSq) {
+				return 2;
+			}
+			return 1;
+		}
+		return 0;
 	}
 
 	float RVOSimulator::getAgentTimeHorizon(size_t agentNo) const

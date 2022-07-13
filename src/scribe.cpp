@@ -47,7 +47,7 @@ void Scribe::draw_text(int x, int y, const char* t) {
 
     int w, h;
     TTF_SizeText(_font, t, &w, &h);
-    _msg_tex = SDL_CreateTextureFromSurface(_renderer, nullptr);
+    _msg_tex = SDL_CreateTextureFromSurface(_renderer, _msg_sur);
     SDL_FreeSurface(_msg_sur);
 
     SDL_Rect msg_rect;

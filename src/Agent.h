@@ -91,8 +91,8 @@ namespace RVO {
 		 */
 		void update();
 
+		// Essential RVO variables
 		std::vector<std::pair<float, const Agent *> > agentNeighbors_;
-		std::vector<std::pair<float, const Agent*> > agentFlock_;
 		size_t maxNeighbors_;
 		float maxSpeed_;
 		float neighborDist_;
@@ -102,30 +102,30 @@ namespace RVO {
 		float radius_;
 		Vector2 position_;
 		Vector2 prefVelocity_;
-		float flocking_radius_;
 		RVOSimulator *sim_;
 		float timeHorizon_;
 		float timeHorizonObst_;
 		Vector2 velocity_;
+		size_t id_;
+
 
 		// Flocking variables
+		std::vector<std::pair<float, const Agent*> > agentFlock_;
 		bool do_flocking_;
+		float flocking_radius_;
 		float flocking_radius_scale_;
 		float seperation_factor_;
 		float cohesion_factor_;
 		float alignment_factor_;
 		float seek_factor_;
-
-		// pathfindign variables
 		Vector2 seek_target_;
 
-		size_t id_;
+		// pathfinding / planning variables
 		size_t team_id_;
 		int debug_draw_color_;
-
 		AgentGroup* agent_group_;
-		std::vector<Vector2> route_;
-		int destination_;
+		//std::vector<Vector2> route_;
+		Vector2 goal_;
 
 		friend class KdTree;
 		friend class RVOSimulator;
