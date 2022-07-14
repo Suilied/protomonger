@@ -54,6 +54,7 @@ private:
 public:
 	int add_circle(float radius);
 	void set_center(float x, float y);
+	void set_center(Vector2 pos);
 	Vector2 get_center();
 
 	void pack();

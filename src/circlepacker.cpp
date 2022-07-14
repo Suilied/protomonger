@@ -16,6 +16,9 @@ CircleNode* CirclePacker::new_circle_node(int id, float radius) {
 void CirclePacker::set_center(float x, float y) {
 	_pack_center = Vector2(x, y);
 }
+void CirclePacker::set_center(Vector2 pos) {
+	_pack_center = pos;
+}
 
 Vector2 CirclePacker::get_center() {
 	return _pack_center;

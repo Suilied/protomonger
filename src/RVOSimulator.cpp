@@ -368,8 +368,24 @@ namespace RVO {
 		}
 	}
 
-	std::vector<Agent*>* RVOSimulator::getAgentVector() {
-		return &agents_;
+	std::vector<Agent*>& RVOSimulator::getAgentVector() {
+		return agents_;
+	}
+
+	void RVOSimulator::setAgentGoal(size_t agentNo, const Vector2& goal) const {
+		agents_[agentNo]->goal_.set(goal);
+	}
+
+	Vector2 RVOSimulator::getAgentGoal(size_t agentNo) const {
+		return agents_[agentNo]->goal_;
+	}
+
+	void RVOSimulator::setAgentState(size_t agentNo, int state) const {
+		agents_[agentNo]->state_ = state;
+	}
+
+	int RVOSimulator::getAgentState(size_t agentNo) const {
+		return agents_[agentNo]->state_;
 	}
 
 	void RVOSimulator::setAgentDebugDrawColor(size_t agentId, int color) {

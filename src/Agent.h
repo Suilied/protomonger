@@ -41,6 +41,11 @@
 #include "Definitions.h"
 #include "RVOSimulator.h"
 
+enum {
+	IDLE,
+	MOVING
+};
+
 namespace RVO {
 	/**
 	 * \brief      Defines an agent in the simulation.
@@ -124,7 +129,7 @@ namespace RVO {
 		size_t team_id_;
 		int debug_draw_color_;
 		AgentGroup* agent_group_;
-		//std::vector<Vector2> route_;
+		int state_ = IDLE;
 		Vector2 goal_;
 
 		friend class KdTree;

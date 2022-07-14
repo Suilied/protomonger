@@ -7,6 +7,19 @@
 #include "RVO.h"
 #include "Agent.h"
 
+#ifndef PIE
+#define PIE 3.14159265358979323846f
+#endif
+
+#define BASE_RADIUS 5.f
+#define NEAR_RADIUS BASE_RADIUS*2.f
+#define BASE_RADIUSSQ BASE_RADIUS*BASE_RADIUS
+#define NEAR_RADIUSSQ NEAR_RADIUS*NEAR_RADIUS
+
+#define AT 2
+#define NEAR 1
+#define FAR 0
+
 struct AgentGoal {
     int agentId;
     float x;
@@ -23,18 +36,23 @@ struct Waypoint {
     float radius_growth;
 };
 
-struct AgentGroup {
+class AgentGroup {
+private:
     std::vector<RVO::Agent*> _agents;
     std::vector<Vector2> _route;
     int near_goal;
     int at_goal;
+    bool deleteme = false;
+public:
+    AgentGroup() {};
+    ~AgentGroup() {};
+    friend class AgentManager;
 };
 
 class AgentManager {
 private:
 	std::vector<Waypoint*> _path;
     RVO::RVOSimulator* _rvoSim;
-    std::vector<RVO::Agent*>* _rvo_agents;
     CirclePacker* _circlePacker;
 
     /*
@@ -47,13 +65,18 @@ private:
     size_t _group_count;
     bool _additive_selection;
 
-    bool rvof_reached_goals();
     void update_rvof_velocities();
     void update_agent_groups(float deltaTime);
     void reset_selection();
+    void set_agent_goals(const std::vector<RVO::Agent*>& agents, Vector2 goalpos);
+    void stop_agents(const std::vector<RVO::Agent*>& agents);
+    void set_next_goal_or_stop(AgentGroup* agentGroup);
 
     // debug draw flags
     bool renderKdTree = false;
+
+    bool is_near(Vector2 distvec) const { return absSq(distvec) < NEAR_RADIUSSQ; }
+    bool is_at(Vector2 distvec) const { return absSq(distvec) < BASE_RADIUSSQ; }
 
 public:
     void init();

@@ -75,6 +75,10 @@
 		inline float y() const { return y_; }
 
 		inline void set(float x, float y) { x_ = x; y_ = y; }
+		inline void set(const Vector2& vec) {
+			x_ = vec.x();
+			y_ = vec.y();
+		}
 
 		/**
 		 * \brief      Computes the negation of this two-dimensional vector.

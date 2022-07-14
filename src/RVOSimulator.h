@@ -602,10 +602,15 @@ namespace RVO {
 		Agent* getAgentInPoint(Vector2 point);
 		void getAgentsInRectangle(Vector2 topleft, Vector2 bottomright, std::vector<Agent*>* agents);
 
+		void setAgentGoal(size_t agentNo, const Vector2& goal) const;
+		Vector2 getAgentGoal(size_t agentNo) const;
+		void setAgentState(size_t agentNo, int state) const;
+		int getAgentState(size_t agentNo) const;
+
 		void setAgentDebugDrawColor(size_t agentId, int color);
 		int getAgentDebugDrawColor(size_t agentId);
 		void drawKdTree(Scribe* scribe);
-		std::vector<Agent*>* getAgentVector();
+		std::vector<Agent*>& getAgentVector();
 
 	private:
 		std::vector<Agent *> agents_;
