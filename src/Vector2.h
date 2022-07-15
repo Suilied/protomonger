@@ -41,6 +41,9 @@
 #include <cmath>
 #include <ostream>
 
+#define CLOCKWISE true
+#define COUNTERCLOCKWISE false
+
 	/**
 	 * \brief      Defines a two-dimensional vector.
 	 */

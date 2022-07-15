@@ -145,6 +145,10 @@ void AgentManager::set_selected_agent_targets(float x, float y) {
     set_agent_goals(agentGroup->_agents, Vector2(x, y));
 
     _agentgroups.push_back(agentGroup);
+
+    // we must trigger this for the debug draw
+    _selection_changed = true;
+
     //// see if we have to corner after reaching the next waypoint
     //if (_path.size() > 1) {
     //    // see if the corner will be sharper than 90deg
@@ -229,7 +233,7 @@ void AgentManager::update_rvof_velocities() {
 
 void AgentManager::set_next_goal_or_stop(AgentGroup* agentGroup) {
     // if there are no more next_points -> stop the group
-    if (agentGroup->_route.size() == 1) {
+    if (agentGroup->_route.size() <= 1) {
         stop_agents(agentGroup->_agents);
         agentGroup->deleteme = true;
     }
@@ -241,7 +245,7 @@ void AgentManager::set_next_goal_or_stop(AgentGroup* agentGroup) {
         agentGroup->at_goal = 0;
 
         // set new goals for the agents
-        set_agent_goals(agentGroup->_agents, agentGroup->_route[agentGroup->_route.size()]);
+        set_agent_goals(agentGroup->_agents, agentGroup->_route[agentGroup->_route.size()-1]);
     }
 }
 
@@ -315,6 +319,7 @@ void AgentManager::select_agent_point(float x, float y) {
         agent->debug_draw_color_ = Color::GREEN;
         _selected_agents.push_back(agent);
     }
+    _selection_changed = true;
 }
 
 void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
@@ -329,21 +334,22 @@ void AgentManager::select_agent_box(float x0, float y0, float x1, float y1) {
     for (int i = 0; i < _selected_agents.size(); i++) {
         _selected_agents[i]->debug_draw_color_ = Color::GREEN;
     }
+    _selection_changed = true;
 }
 
 void AgentManager::debug_draw(Scribe* scribe) {
-    // draw KD tree
     if (renderKdTree) {
         _rvoSim->drawKdTree(scribe);
     }
 
-    // draw the goals the agents are trying to reach
+    // draw goals
     scribe->set_draw_color(Color::WHITE);
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
         Vector2 agentGoal = _rvoSim->getAgentGoal(i);
         scribe->draw_circle(agentGoal.x(), agentGoal.y(), _rvoSim->getAgentRadius(i));
     }
 
+    // draw agents
     for (int i = 0; i < _rvoSim->getNumAgents(); i++) {
         Vector2 p = _rvoSim->getAgentPosition(i);
         float r0 = _rvoSim->getAgentRadius(i);
@@ -351,12 +357,89 @@ void AgentManager::debug_draw(Scribe* scribe) {
         scribe->draw_circle(p.x(), p.y(), std::ceil(r0));
     }
 
-    // Draw Waypoints
-    scribe->set_draw_color(Color::CYAN);
+    bool draw_offset_vec = false;
+    // draw Waypoints /w offsets
     for (int i = 0; i < _path.size(); i++) {
+        scribe->set_draw_color(Color::CYAN);
         scribe->draw_circle(_path[i]->x, _path[i]->y, _path[i]->radius);
         if (i + 1 != _path.size()) {
+            scribe->set_draw_color(Color::CYAN);
             scribe->draw_line(_path[i]->x, _path[i]->y, _path[i + 1]->x, _path[i + 1]->y);
+            draw_offset_vec = true;
+        }
+    }
+
+    // draw offset vec on the path
+    if (_selected_agents.size() > 0 && draw_offset_vec) {
+
+        if (_selection_changed) {
+            _circlePacker->clear();
+            _circlePacker->set_center(Vector2());
+
+            // setup and pack individual targets
+            // incidentally, sync _circlePacker with agents vector
+            for (int i = 0; i < _selected_agents.size(); i++) {
+                _circlePacker->add_circle(_selected_agents[i]->radius_);
+            }
+            _circlePacker->pack();
+            _selection_changed = false;
+        }
+
+        Vector2 avgpos = Vector2();
+        for (int i = 0; i < _selected_agents.size(); i++) {
+            //_selected_agents[i]->agent_group_ = agentGroup;
+            avgpos += _selected_agents[i]->position_;
+        }
+        avgpos /= _selected_agents.size();
+
+        Vector2 path0vec = Vector2(_path[0]->x, _path[0]->y);
+        Vector2 path1vec = Vector2(_path[1]->x, _path[1]->y);
+        Vector2 avgpos_to_path0vec = Vector2(_path[0]->x, _path[0]->y) - avgpos;
+        Vector2 path0_to_path1vec = Vector2(_path[1]->x, _path[1]->y) - Vector2(_path[0]->x, _path[0]->y);
+        Vector2 path1_to_avgposvec = avgpos - Vector2(_path[1]->x, _path[1]->y);
+
+        scribe->set_draw_color(Color::BLUE);
+        scribe->draw_line(avgpos.x(), avgpos.y(), path0vec.x(), path0vec.y());
+
+        // the corner is not as sharp and we can offset the target a bit
+        if (dot(avgpos_to_path0vec, path0_to_path1vec) > 0.f) {
+            // now we want to get the normal of path0-to-path1-vec (hopefully it has the correct sign, otherwise change sign)
+            // place it on the tip of avgpos-to-path0 vec 
+            // and have its magnitude be big enough so that its radius is at least equal to the radius of the selected units combined
+
+            Vector2 checkvec = rotate90(path0_to_path1vec);
+            Vector2 offsetvec = normalize(avgpos_to_path0vec);
+            // avgpos_to_path0vec lies to the right of path0_to_path1vec thus we must rotate90 counter-clockwise
+            if (dot(checkvec, avgpos_to_path0vec) > 0.f) {
+                offsetvec = rotate90(offsetvec, COUNTERCLOCKWISE);
+            }
+            // avgpos_to_path0vec lies to the left of path0_to_path1vec thus we must rotate90 clockwise
+            else {
+                offsetvec = rotate90(offsetvec, CLOCKWISE);
+            }
+            offsetvec *= _circlePacker->get_approx_diameter() / 2.f;
+            offsetvec += path0vec;
+            scribe->set_draw_color(Color::RED);
+            scribe->draw_line(path0vec.x(), path0vec.y(), offsetvec.x(), offsetvec.y());
+        }
+        else {  // the corner is sharper than 90deg; we must offset
+            // now we want to get the center of the triangle formed by avgpos-to-path0, path0-to-path1 & path1-to-avgpos
+            // from there we make a new vec => centervec-to-path0
+            // and add another centervec-to-path0 vec with a magnitude that is at least equal to the radius of the selected units combined
+            Vector2 checkvec = rotate90(path0_to_path1vec);
+            Vector2 offsetvec = normalize(avgpos_to_path0vec);
+            // avgpos_to_path0vec lies to the right of path0_to_path1vec thus we must rotate90 counter-clockwise
+            if (dot(checkvec, avgpos_to_path0vec) > 0.f) {
+                offsetvec = rotate90(offsetvec, COUNTERCLOCKWISE);
+            }
+            // avgpos_to_path0vec lies to the left of path0_to_path1vec thus we must rotate90 clockwise
+            else {
+                offsetvec = rotate90(offsetvec, CLOCKWISE);
+            }
+            offsetvec *= _circlePacker->get_approx_diameter() / 2.f;
+            offsetvec += path0vec;
+            scribe->set_draw_color(Color::RED);
+            scribe->draw_line(path0vec.x(), path0vec.y(), offsetvec.x(), offsetvec.y());
         }
     }
 }

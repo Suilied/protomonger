@@ -249,6 +249,13 @@ void CirclePacker::pack() {
 
 	// set the root node
 	_root = a;
+
+	// bonus, try and approximate the packed diameter
+	_approx_diameter = abs(bb_topright - bb_bottomleft);
+}
+
+float CirclePacker::get_approx_diameter() {
+	return _approx_diameter;
 }
 
 void CirclePacker::set_circle_radius(int id, float radius) {

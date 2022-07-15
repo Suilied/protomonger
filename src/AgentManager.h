@@ -65,6 +65,9 @@ private:
     size_t _group_count;
     bool _additive_selection;
 
+    // for debug draw 
+    bool _selection_changed;
+
     void update_rvof_velocities();
     void update_agent_groups(float deltaTime);
     void reset_selection();

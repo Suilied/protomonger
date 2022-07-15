@@ -39,6 +39,7 @@ class CirclePacker {
 private:
 	Vector2 _pack_center;
 	Vector2 _pack_direction;
+	float _approx_diameter;
 	std::vector<CircleNode*> _circle_nodes;	// map of previously allocated _circles, this way we can reuse 
 	std::vector<float> _circles;	// array of circles (diameters in float) that need to be packed
 	CircleNode* _root;
@@ -61,6 +62,7 @@ public:
 
 	void set_circle_radius(int id, float radius);
 	Vector2 get_circle_position(int id);
+	float get_approx_diameter();
 	void clear();
 
 	CirclePacker();
