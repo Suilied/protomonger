@@ -145,6 +145,12 @@ namespace RVO {
 
 		const float invTimeHorizonObst = 1.0f / timeHorizonObst_;
 
+		if (state_ == PUSHED) {
+			if (prefVelocity_ == Vector2()) {
+				state_ = IDLE;
+			}
+		}
+
 		/* Create obstacle ORCA lines. */
 		for (size_t i = 0; i < obstacleNeighbors_.size(); ++i) {
 
@@ -375,9 +381,13 @@ namespace RVO {
 		for (size_t i = 0; i < agentNeighbors_.size(); ++i) {
 			// agentNeighbors_ includes flocking agents, the RVO part should only take in account VERY close neighbors.
 			const float distance_to_neighbor = absSq(position_ - agentNeighbors_[i].second->position_);
-			float actual_radius = sqr(timeHorizonObst_ * maxSpeed_ + radius_);
+			float actual_radius = radius_*radius_;
 			if (distance_to_neighbor > actual_radius) {
-				continue;
+				// check if we need to get pushed out of the way
+				if (state_ == IDLE && agentNeighbors_[i].second->state_ == MOVING) {
+					prefVelocity_ = normalize(position_ - agentNeighbors_[i].second->position_) * maxSpeed_;
+					state_ = PUSHED;
+				}
 			}
 
 			const Agent *const other = agentNeighbors_[i].second;

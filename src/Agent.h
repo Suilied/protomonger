@@ -43,7 +43,8 @@
 
 enum {
 	IDLE,
-	MOVING
+	MOVING,
+	PUSHED
 };
 
 namespace RVO {
