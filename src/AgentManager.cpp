@@ -250,29 +250,19 @@ void AgentManager::set_next_goal_or_stop(AgentGroup* agentGroup) {
 }
 
 void AgentManager::update_agent_groups(float deltaTime) {
+    bool stopmoving = false;
     for (int i = 0; i < _agentgroups.size(); i++) {
-
+        Vector2 avgAgentPos;
+        Vector2 avgGoalPos;
         for (int j = 0; j < _agentgroups[i]->_agents.size(); j++) {
+            avgAgentPos += _agentgroups[i]->_agents[j]->position_;
+            avgGoalPos += _agentgroups[i]->_agents[j]->goal_;
+        }
+        avgAgentPos /= _agentgroups[i]->_agents.size();
+        avgGoalPos /= _agentgroups[i]->_agents.size();
 
-            if (_agentgroups[i]->at_goal > 0) {
-                if (_agentgroups[i]->near_goal == _agentgroups[i]->_agents.size()) {
-                    // if 1 agent is at the goal and all the others AT LEAST near
-                    // set all agents goals to the next calculated point on the path
-                    set_next_goal_or_stop(_agentgroups[i]);
-                }
-            }
-            else {
-                if (is_near(_agentgroups[i]->_agents[j]->goal_ - _agentgroups[i]->_agents[j]->position_)) {
-                    if (_agentgroups[i]->near_goal != _agentgroups[i]->_agents.size()) {
-                        _agentgroups[i]->near_goal++;
-                    }
-                    if (is_at(_agentgroups[i]->_agents[j]->goal_ - _agentgroups[i]->_agents[j]->position_)) {
-                        if (_agentgroups[i]->at_goal != _agentgroups[i]->_agents.size()) {
-                            _agentgroups[i]->at_goal++;
-                        }
-                    }
-                }
-            }
+        if (is_at(avgAgentPos - avgGoalPos)) {
+            set_next_goal_or_stop(_agentgroups[i]);
         }
     }
 
