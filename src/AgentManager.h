@@ -36,6 +36,10 @@ struct Waypoint {
     float radius_growth;
 };
 
+struct DebugObstacle {
+    std::vector<Vector2> poly;
+};
+
 class AgentGroup {
 private:
     std::vector<RVO::Agent*> _agents;
@@ -62,6 +66,9 @@ private:
     // these agents have been selected by the player
     std::vector<RVO::Agent*> _selected_agents;
     std::vector<AgentGroup*> _agentgroups;
+    std::vector<DebugObstacle*> _debugObstacles;
+    std::vector<Vector2> _temp_obstacle;
+    //bool _draw_debug_obstacles = true;
     size_t _group_count;
     bool _additive_selection;
 
@@ -92,6 +99,10 @@ public:
     void stop_selected_agents();
     void stop_all_agents();
     void spawn_agent(Vector2 position, Vector2 goal = Vector2(), bool selected = false);
+
+    void new_obstacle_vert(const Vector2& vec);
+    void create_obstacle_from_verts();
+    void create_new_obstacle(const std::vector<Vector2>& poly);
 
     void select_agent_point(float x, float y);
     void select_agent_box(float x0, float y0, float x1, float y1);

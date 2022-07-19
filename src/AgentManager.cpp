@@ -84,6 +84,27 @@ void AgentManager::spawn_agent(Vector2 position, Vector2 goal, bool selected) {
     //_rvo_agents[agentId]->goal_ = goal;
 }
 
+
+void AgentManager::new_obstacle_vert(const Vector2& vec) {
+    _temp_obstacle.push_back(vec);
+}
+
+void AgentManager::create_obstacle_from_verts() {
+    if (_temp_obstacle.size() > 2) {
+        create_new_obstacle(_temp_obstacle);
+        _temp_obstacle.clear();
+    }
+}
+
+void AgentManager::create_new_obstacle(const std::vector<Vector2>& poly) {
+    DebugObstacle dbo{
+        poly
+    };
+    _rvoSim->addObstacle(poly);
+    _debugObstacles.push_back(&dbo);
+}
+
+
 void AgentManager::set_additive_selection(bool active) {
     _additive_selection = active;
 }
@@ -356,6 +377,31 @@ void AgentManager::debug_draw(Scribe* scribe) {
             scribe->set_draw_color(Color::CYAN);
             scribe->draw_line(_path[i]->x, _path[i]->y, _path[i + 1]->x, _path[i + 1]->y);
             draw_offset_vec = true;
+        }
+    }
+
+    // draw _temp_obstacle
+    for (int i = 0; i < _temp_obstacle.size(); i++) {
+        scribe->set_draw_color(Color::WHITE);
+        scribe->draw_circle(_temp_obstacle[i].x(), _temp_obstacle[i].y(), 3.f);
+        if (i + 1 < _temp_obstacle.size()) {
+            scribe->draw_line(_temp_obstacle[i].x(), _temp_obstacle[i].y(), _temp_obstacle[i+1].x(), _temp_obstacle[i+1].y());
+        }
+    }
+    if (_temp_obstacle.size() > 2) {
+        scribe->draw_line(_temp_obstacle[0].x(), _temp_obstacle[0].y(), _temp_obstacle.back().x(), _temp_obstacle.back().y());
+    }
+
+    // draw obstacles
+    for (int i = 0; i < _debugObstacles.size(); i++) {
+        scribe->set_draw_color(Color::YELLOW);
+        for (int j = 0; j < _debugObstacles[i]->poly.size(); j++) {
+            if (j + 1 < _debugObstacles[i]->poly.size()) {
+                scribe->draw_line(_debugObstacles[i]->poly[j].x(), _debugObstacles[i]->poly[j].y(), _debugObstacles[i]->poly[j+1].x(), _debugObstacles[i]->poly[j+1].y());
+            }
+            else {
+                scribe->draw_line(_debugObstacles[i]->poly[j].x(), _debugObstacles[i]->poly[j].y(), _debugObstacles[i]->poly[0].x(), _debugObstacles[i]->poly[0].y());
+            }
         }
     }
 

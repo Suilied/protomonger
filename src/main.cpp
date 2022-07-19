@@ -35,6 +35,7 @@
 enum MouseMode {
     select = 0,
     waypoint,
+    obstacle,
     max
 };
 
@@ -107,6 +108,10 @@ int main(int argc, char* argv[])
                 case SDL_KEYDOWN:
                     switch (event.key.keysym.sym) {
                         case SDLK_SPACE:
+                            // if building an obstacle, finish build and push it to the RVOSim
+                            if (mousemode == MouseMode::obstacle) {
+                                agentPlanner->create_obstacle_from_verts();
+                            }
                             break;
                         case SDLK_x:
                             if (mousemode != MouseMode::max - 1)
@@ -152,6 +157,10 @@ int main(int argc, char* argv[])
                         case MouseMode::waypoint:
                             // add point to path planner
                             agentPlanner->new_waypoint(event.button.x, event.button.y);
+                            break;
+                        case MouseMode::obstacle:
+                            // add vector to obstacle
+                            agentPlanner->new_obstacle_vert(Vector2(event.button.x, event.button.y));
                             break;
                         }
                     }
