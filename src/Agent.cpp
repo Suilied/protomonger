@@ -40,6 +40,7 @@ namespace RVO {
 		// init flocking values
 		do_flocking_ = true;
 		flocking_radius_scale_ = 1.5f;
+		flocking_radius_ = flocking_radius_scale_ * radius_;
 		seperation_factor_ = 0.7f;
 		cohesion_factor_ = 0.4f;
 		alignment_factor_ = 0.3f;
@@ -48,12 +49,14 @@ namespace RVO {
 		// agent manager vars
 		team_id_ = 0;
 		debug_draw_color_ = 3;
+		agent_group_ = nullptr;
 	}
 
 	void Agent::computeNeighbors()
 	{
 		obstacleNeighbors_.clear();
-		float rangeSq = sqr(timeHorizonObst_ * maxSpeed_ + radius_);
+		//float rangeSq = sqr(timeHorizonObst_ * maxSpeed_ + radius_);
+		float rangeSq = sqr(neighborDist_);
 		//float flockRangeSq = sqr(timeHorizonObst_ * maxSpeed_ + flocking_radius_);
 		sim_->kdTree_->computeObstacleNeighbors(this, rangeSq);
 

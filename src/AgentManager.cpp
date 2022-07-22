@@ -56,9 +56,9 @@ void AgentManager::spawn_agents_square(Vector2 center_vec, int agent_count) {
     );
 
     Vector2 avgpos;
-    float acs = std::sqrt(agent_count);
-    int square_width = std::ceil(acs);
-    int square_depth = std::floor(acs);
+    float acs = (float)std::sqrt(agent_count);
+    int square_width = (int)std::ceil(acs);
+    int square_depth = (int)std::floor(acs);
     int agents_placed = 0;
     std::vector<Vector2> place_positions;
     place_positions.resize(agent_count);
@@ -75,33 +75,38 @@ void AgentManager::spawn_agents_square(Vector2 center_vec, int agent_count) {
 }
 
 void AgentManager::spawn_agent(Vector2 position, Vector2 goal, bool selected) {
+    int initialAgentState = MOVING;
     if (goal == Vector2()) {
-        goal = position;
+        initialAgentState = IDLE;
     }
     size_t agentId = _rvoSim->addAgent(position);
     _rvoSim->setAgentGoal(agentId, goal);
-    _rvoSim->setAgentState(agentId, MOVING);
-    //_rvo_agents[agentId]->goal_ = goal;
+    _rvoSim->setAgentState(agentId, initialAgentState);
 }
 
 
 void AgentManager::new_obstacle_vert(const Vector2& vec) {
-    _temp_obstacle.push_back(vec);
+    if (_clear_temp_obstacle) {
+        _temp_obstacle = new std::vector<Vector2>();
+        _clear_temp_obstacle = false;
+    }
+    _temp_obstacle->push_back(vec);
 }
 
 void AgentManager::create_obstacle_from_verts() {
-    if (_temp_obstacle.size() > 2) {
-        create_new_obstacle(_temp_obstacle);
-        _temp_obstacle.clear();
+    if (_temp_obstacle->size() > 2) {
+        create_new_obstacle(*_temp_obstacle);
+        _clear_temp_obstacle = true;
     }
 }
 
 void AgentManager::create_new_obstacle(const std::vector<Vector2>& poly) {
-    DebugObstacle dbo{
+    DebugObstacle* dbo = new DebugObstacle{
         poly
     };
     _rvoSim->addObstacle(poly);
-    _debugObstacles.push_back(&dbo);
+    _rvoSim->processObstacles();
+    _debugObstacles.push_back(dbo);
 }
 
 
@@ -203,7 +208,6 @@ void AgentManager::set_selected_agent_targets(float x, float y) {
 
 void AgentManager::stop_selected_agents() {
     for (int i = 0; i < _selected_agents.size(); i++) {
-        //_rvo_agents[_selected_agents[i]->id_]->goal_ = _rvo_agents[_selected_agents[i]->id_]->position_;
         _rvoSim->setAgentGoal(_selected_agents[i]->id_, _rvoSim->getAgentPosition(_selected_agents[i]->id_));
         _rvoSim->setAgentState(_selected_agents[i]->id_, IDLE);
     }
@@ -219,7 +223,6 @@ void AgentManager::stop_agents(const std::vector<RVO::Agent*>& agents) {
 void AgentManager::stop_all_agents() {
     int agent_count = _rvoSim->getNumAgents();
     for (int i = 0; i < agent_count; i++) {
-        //_rvo_agents[i]->goal_ = _rvo_agents[i]->position_;
         _rvoSim->setAgentGoal(i, _rvoSim->getAgentPosition(i));
         _rvoSim->setAgentState(i, IDLE);
     }
@@ -381,15 +384,17 @@ void AgentManager::debug_draw(Scribe* scribe) {
     }
 
     // draw _temp_obstacle
-    for (int i = 0; i < _temp_obstacle.size(); i++) {
-        scribe->set_draw_color(Color::WHITE);
-        scribe->draw_circle(_temp_obstacle[i].x(), _temp_obstacle[i].y(), 3.f);
-        if (i + 1 < _temp_obstacle.size()) {
-            scribe->draw_line(_temp_obstacle[i].x(), _temp_obstacle[i].y(), _temp_obstacle[i+1].x(), _temp_obstacle[i+1].y());
+    if (_temp_obstacle != nullptr) {
+        for (int i = 0; i < _temp_obstacle->size(); i++) {
+            scribe->set_draw_color(Color::WHITE);
+            scribe->draw_circle(_temp_obstacle->at(i).x(), _temp_obstacle->at(i).y(), 3.f);
+            if (i + 1 < _temp_obstacle->size()) {
+                scribe->draw_line(_temp_obstacle->at(i).x(), _temp_obstacle->at(i).y(), _temp_obstacle->at(i + 1).x(), _temp_obstacle->at(i + 1).y());
+            }
         }
-    }
-    if (_temp_obstacle.size() > 2) {
-        scribe->draw_line(_temp_obstacle[0].x(), _temp_obstacle[0].y(), _temp_obstacle.back().x(), _temp_obstacle.back().y());
+        if (_temp_obstacle->size() > 2) {
+            scribe->draw_line(_temp_obstacle->at(0).x(), _temp_obstacle->at(0).y(), _temp_obstacle->back().x(), _temp_obstacle->back().y());
+        }
     }
 
     // draw obstacles
@@ -495,4 +500,5 @@ AgentManager::~AgentManager() {
     clear_waypoints();
     delete _rvoSim;
     delete _circlePacker;
+    _debugObstacles.clear();
 }

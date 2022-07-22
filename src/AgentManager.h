@@ -44,8 +44,8 @@ class AgentGroup {
 private:
     std::vector<RVO::Agent*> _agents;
     std::vector<Vector2> _route;
-    int near_goal;
-    int at_goal;
+    int near_goal = 0;
+    int at_goal = 0;
     bool deleteme = false;
 public:
     AgentGroup() {};
@@ -67,7 +67,8 @@ private:
     std::vector<RVO::Agent*> _selected_agents;
     std::vector<AgentGroup*> _agentgroups;
     std::vector<DebugObstacle*> _debugObstacles;
-    std::vector<Vector2> _temp_obstacle;
+    std::vector<Vector2>* _temp_obstacle = nullptr;
+    bool _clear_temp_obstacle = true;
     //bool _draw_debug_obstacles = true;
     size_t _group_count;
     bool _additive_selection;
