@@ -10,3 +10,15 @@ Todo Shortlist:
 - implement "terrain" for agents to avoid
 - remove SDL_ttf and replace text drawing with sprite-text
 - add sprites for the "units"
+
+- build the actual Godot interface
+- - Add agents
+- - Remove agents
+- - get/set agent position, radius, [prefered velocity]
+- - - Bulk get/set (for speed)
+- - denote agent group
+- - set path for agent group
+
+- - Add terrain
+- - Remove terrain
+- - Run RVOsim step

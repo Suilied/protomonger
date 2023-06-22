@@ -28,8 +28,9 @@ struct AgentGoal {
 };
 
 struct Waypoint {
-    float x;
-    float y;
+    Vector2 pos;
+    //float x;
+    //float y;
     float radius;
     float radius_min;
     float radius_max;
@@ -82,6 +83,7 @@ private:
     void set_agent_goals(const std::vector<RVO::Agent*>& agents, Vector2 goalpos);
     void stop_agents(const std::vector<RVO::Agent*>& agents);
     void set_next_goal_or_stop(AgentGroup* agentGroup);
+    void calc_corner_offset(const Vector2& startpos, const std::vector<Waypoint*>& path);
 
     // debug draw flags
     bool renderKdTree = false;

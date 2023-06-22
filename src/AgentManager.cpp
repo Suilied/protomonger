@@ -133,6 +133,27 @@ void AgentManager::set_agent_goals(const std::vector<RVO::Agent*>& agents, Vecto
     }
 }
 
+// Calculate the offset we need on vec_b so that large groups can round the corners more easily
+// return the offset vector for now TODO: in the future, we want to manipulate vec_b directly
+void AgentManager::calc_corner_offset(const Vector2& avgAgentPos, const std::vector<Waypoint*>& path) {
+
+    // make a copy of the path
+    std::vector<Vector2> newpath;
+    for (int i = 0; i < path.size(); i++) {
+        newpath.push_back(Vector2(path[i]->pos));
+    }
+
+    // set up a walk through all points in path
+    Vector2 vec_a = avgAgentPos;
+    Vector2 vec_b = path[0]->pos;
+    Vector2 vec_c = path[1]->pos;
+
+    // starting from after the setup; calculate the offset for our path nodes
+    for (int i = 2; i < path.size(); i++) {
+
+    }
+}
+
 void AgentManager::set_selected_agent_targets(float x, float y) {
     // generate path from pathfinding algo
     // shortest path is a std::vector<Vector2> of size 1
@@ -140,14 +161,24 @@ void AgentManager::set_selected_agent_targets(float x, float y) {
     AgentGroup* agentGroup = new AgentGroup();
     agentGroup->near_goal = 0;
     agentGroup->at_goal = 0;
+    Vector2 avgPos = Vector2();
     for (int i = 0; i < _selected_agents.size(); i++) {
         agentGroup->_agents.push_back(_selected_agents[i]);
+        avgPos += _selected_agents[i]->position_;
     }
+    avgPos /= _selected_agents.size();
 
+    // if _path.size >= 1 (and we've right-clicked near the starting circle of the path) then we've 
+    // received a complex path from the pathfinder and we first will need to adjust it so it will 
+    // be easier for the selected agents to round any corners.
     if (_path.size() >= 1) {
-        if (absSq(Vector2(x, y) - Vector2(_path[0]->x, _path[0]->y)) < 100.f) {
+        if (absSq(Vector2(x, y) - _path[0]->pos) < 100.f) {
+
+            // first adjust the _path
+            calc_corner_offset(avgPos, _path);
+
             for (int i = 0; i < _path.size(); i++) {
-                agentGroup->_route.push_back(Vector2(_path[i]->x, _path[i]->y));
+                agentGroup->_route.push_back(_path[i]->pos);
             }
         }
     }
@@ -174,36 +205,6 @@ void AgentManager::set_selected_agent_targets(float x, float y) {
 
     // we must trigger this for the debug draw
     _selection_changed = true;
-
-    //// see if we have to corner after reaching the next waypoint
-    //if (_path.size() > 1) {
-    //    // see if the corner will be sharper than 90deg
-    //    Vector2 avgpos_to_path0vec = Vector2(_path[0]->x, _path[0]->y) - avgpos;
-    //    Vector2 path0_to_path1vec = Vector2(_path[1]->x, _path[1]->y) - Vector2(_path[0]->x, _path[0]->y);
-    //    Vector2 path1_to_avgposvec = avgpos - Vector2(_path[1]->x, _path[1]->y);
-
-    //    // the corner is not as sharp and we can offset the target a bit
-    //    if (dot(avgpos_to_path0vec, path0_to_path1vec) > 0.f) {
-    //        // now we want to get the normal of path0-to-path1-vec (hopefully it has the correct sign, otherwise change sign)
-    //        // place it on the tip of avgpos-to-path0 vec 
-    //        // and have its magnitude be big enough so that its radius is at least equal to the radius of the selected units combined
-    //    }
-    //    else {  // the corner is sharper than 90deg; we must offset 
-    //        // now we want to get the center of the triangle formed by avgpos-to-path0, path0-to-path1 & path1-to-avgpos
-    //        // from there we make a new vec => centervec-to-path0
-    //        // and add another centervec-to-path0 vec with a magnitude that is at least equal to the radius of the selected units combined
-    //    }
-    //}
-
-    //// do pathfinding algo
-    //if (_path.size() != 0) {
-    //    // we have a path
-    //    x = _path[0]->x;
-    //    y = _path[0]->y;
-    //    // this is slow, consider consuming the path in reverse from the pathfinder algo
-    //    // then we can use _path.pop_back();
-    //    _path.erase(_path.begin());
-    //}
 }
 
 void AgentManager::stop_selected_agents() {
@@ -231,8 +232,7 @@ void AgentManager::stop_all_agents() {
 void AgentManager::new_waypoint(float x, float y) {
     Waypoint* newWaypoint = new Waypoint();
 
-    newWaypoint->x = x;
-    newWaypoint->y = y;
+    newWaypoint->pos = Vector2(x, y);
     newWaypoint->radius = 10.f;
     newWaypoint->radius_growth = -.3f;
     newWaypoint->radius_min = 5.f;
@@ -375,10 +375,10 @@ void AgentManager::debug_draw(Scribe* scribe) {
     // draw Waypoints /w offsets
     for (int i = 0; i < _path.size(); i++) {
         scribe->set_draw_color(Color::CYAN);
-        scribe->draw_circle(_path[i]->x, _path[i]->y, _path[i]->radius);
+        scribe->draw_circle(_path[i]->pos.x(), _path[i]->pos.y(), _path[i]->radius);
         if (i + 1 != _path.size()) {
             scribe->set_draw_color(Color::CYAN);
-            scribe->draw_line(_path[i]->x, _path[i]->y, _path[i + 1]->x, _path[i + 1]->y);
+            scribe->draw_line(_path[i]->pos.x(), _path[i]->pos.y(), _path[i + 1]->pos.x(), _path[i + 1]->pos.y());
             draw_offset_vec = true;
         }
     }
@@ -433,11 +433,11 @@ void AgentManager::debug_draw(Scribe* scribe) {
         }
         avgpos /= _selected_agents.size();
 
-        Vector2 path0vec = Vector2(_path[0]->x, _path[0]->y);
-        Vector2 path1vec = Vector2(_path[1]->x, _path[1]->y);
-        Vector2 avgpos_to_path0vec = Vector2(_path[0]->x, _path[0]->y) - avgpos;
-        Vector2 path0_to_path1vec = Vector2(_path[1]->x, _path[1]->y) - Vector2(_path[0]->x, _path[0]->y);
-        Vector2 path1_to_avgposvec = avgpos - Vector2(_path[1]->x, _path[1]->y);
+        Vector2 path0vec = _path[0]->pos;
+        Vector2 path1vec = _path[1]->pos;
+        Vector2 avgpos_to_path0vec = _path[0]->pos - avgpos;
+        Vector2 path0_to_path1vec = _path[1]->pos - _path[0]->pos;
+        Vector2 path1_to_avgposvec = avgpos - _path[1]->pos;
 
         scribe->set_draw_color(Color::BLUE);
         scribe->draw_line(avgpos.x(), avgpos.y(), path0vec.x(), path0vec.y());

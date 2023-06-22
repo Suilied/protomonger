@@ -81,10 +81,37 @@ void Scribe::draw(){
     SDL_RenderPresent(_renderer);
 }
 
+
+// Camera shennanigans
+void Scribe::snap_move_camera(float x, float y) {
+    _camera->set_position(x, y);
+}
+
+void Scribe::move_camera(float x, float y) {
+    _camera->set_position_target(Vector2(x,y));
+}
+
+void Scribe::add_move_camera(Vector2 dir) {
+    Vector2 currentpos = _camera->get_position();
+    _camera->set_position_target(currentpos + dir);
+}
+
+void Scribe::snap_zoom_camera(float z) {
+    _camera->set_zoom(z);
+}
+
+void Scribe::zoom_camera(float z) {
+    _camera->set_zoom_target(z);
+}
+
+
+// CREATOR DESTRUCTOR
 Scribe::Scribe(SDL_Renderer* renderer) {
     _renderer = renderer;
     _draw_color = Color::WHITE;
     _clear_color = Color::BLACK;
+
+    _camera = new Camera();
 
     _colors.push_back({ 0x00, 0x00, 0x00, 0xff });   // BLACK
     _colors.push_back({ 0xff, 0xff, 0xff, 0xff });   // WHITE

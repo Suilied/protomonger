@@ -387,6 +387,11 @@ namespace RVO {
 			float actual_radius = radius_*radius_;
 			if (distance_to_neighbor > actual_radius) {
 				// check if we need to get pushed out of the way
+				// TODO: Make provission so we can choose not to be pushed, i.e. when encountering
+				// hostile agents
+				// TODO: create "owner" class where agents can register themselves 
+				// this way we can make an alliance table that the "owner" class can refer
+				// to in order to determine wether or not another agent is hostile or friendly
 				if (state_ == IDLE && agentNeighbors_[i].second->state_ == MOVING) {
 					prefVelocity_ = normalize(position_ - agentNeighbors_[i].second->position_) * maxSpeed_;
 					state_ = PUSHED;

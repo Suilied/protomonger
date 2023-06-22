@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "camera.h"
+
 #define DEFAULT_FONT ".\\assets\\fonts\\Hack-Regular.ttf"
 
 enum Color {
@@ -29,6 +31,8 @@ private:
     SDL_Surface* _msg_sur;
     SDL_Texture* _msg_tex;
 
+    Camera* _camera;
+
     void draw_quadrant(SDL_Renderer* renderer, int a, int b, int x, int y);
 
 public:
@@ -41,6 +45,13 @@ public:
     void draw_text(int x, int y, const char* t);
     void clear();
     void draw();
+
+    void snap_move_camera(float x, float y);
+    void move_camera(float x, float y);
+    void add_move_camera(Vector2 dir);
+    void snap_zoom_camera(float z);
+    void zoom_camera(float z);
+
     Scribe(SDL_Renderer* renderer);
     ~Scribe();
 };

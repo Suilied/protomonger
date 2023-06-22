@@ -143,6 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BattleManager.h" />
+    <ClInclude Include="Faction.h" />
     <ClInclude Include="src\Agent.h" />
     <ClInclude Include="src\AgentManager.h" />
     <ClInclude Include="src\camera.h" />
@@ -156,6 +158,7 @@
     <ClInclude Include="src\Vector2.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BattleManager.cpp" />
     <ClCompile Include="src\Agent.cpp" />
     <ClCompile Include="src\AgentManager.cpp" />
     <ClCompile Include="src\circlepacker.cpp" />

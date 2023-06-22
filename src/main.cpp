@@ -13,7 +13,7 @@
 /*
 * tour agency nodig
 * tour guides & planners
-* in agent een stuk met status (enum) 
+* in agent een stuk met status (enum)
 * zodat we andere agents kunnen pushen als die idle zijn
 * planner heeft circlepacker nodig om sub-stations correct te plannen
 * substations krijgen een offset in hoeken everredig aan de hoek
@@ -134,6 +134,18 @@ int main(int argc, char* argv[])
                         case SDLK_RSHIFT:
                             agentPlanner->set_additive_selection(true);
                             break;
+                        case SDLK_LEFT:
+                            scribe->add_move_camera(Vector2(10.f, 0.f));
+                            break;
+                        case SDLK_RIGHT:
+                            scribe->add_move_camera(Vector2(-10.f, 0.f));
+                            break;
+                        case SDLK_UP:
+                            scribe->add_move_camera(Vector2(0.f, -10.f));
+                            break;
+                        case SDLK_DOWN:
+                            scribe->add_move_camera(Vector2(0.f, 10.f));
+                            break;
                     }
                     break;
                 case SDL_KEYUP:
@@ -222,6 +234,8 @@ int main(int argc, char* argv[])
         case MouseMode::waypoint:
             scribe->draw_text(10, 20, "Mode: Waypoint");
             break;
+        case MouseMode::obstacle:
+            scribe->draw_text(10, 20, "Mode: Obstacle");
         }
 
         scribe->draw();
