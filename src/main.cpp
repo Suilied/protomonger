@@ -135,16 +135,16 @@ int main(int argc, char* argv[])
                             agentPlanner->set_additive_selection(true);
                             break;
                         case SDLK_LEFT:
-                            scribe->add_move_camera(Vector2(10.f, 0.f));
+                            scribe->add_move_camera(Vector2(100.f, 0.f));
                             break;
                         case SDLK_RIGHT:
-                            scribe->add_move_camera(Vector2(-10.f, 0.f));
+                            scribe->add_move_camera(Vector2(-100.f, 0.f));
                             break;
                         case SDLK_UP:
-                            scribe->add_move_camera(Vector2(0.f, -10.f));
+                            scribe->add_move_camera(Vector2(0.f, 100.f));
                             break;
                         case SDLK_DOWN:
-                            scribe->add_move_camera(Vector2(0.f, 10.f));
+                            scribe->add_move_camera(Vector2(0.f, -100.f));
                             break;
                     }
                     break;
@@ -162,17 +162,17 @@ int main(int argc, char* argv[])
                         // right click on waypoint will set that as the destination of the selected group.
                         switch (mousemode) {
                         case MouseMode::select:
-                            select_box = Vector2(event.button.x, event.button.y);
+                            select_box = scribe->get_mouse_vec();
                             selecting = true;
                             mouse_pos = select_box;
                             break;
                         case MouseMode::waypoint:
                             // add point to path planner
-                            agentPlanner->new_waypoint(event.button.x, event.button.y);
+                            agentPlanner->new_waypoint(scribe->get_mouse_x(), scribe->get_mouse_y());
                             break;
                         case MouseMode::obstacle:
                             // add vector to obstacle
-                            agentPlanner->new_obstacle_vert(Vector2(event.button.x, event.button.y));
+                            agentPlanner->new_obstacle_vert(scribe->get_mouse_vec());
                             break;
                         }
                     }
@@ -181,20 +181,20 @@ int main(int argc, char* argv[])
                         agentPlanner->clear_waypoints();
                     }
                     if (event.button.button == SDL_BUTTON_RIGHT) {
-                        agentPlanner->set_selected_agent_targets(event.button.x, event.button.y);
+                        agentPlanner->set_selected_agent_targets(scribe->get_mouse_x(), scribe->get_mouse_y());
                     }
                     break;
                 case SDL_MOUSEBUTTONUP:
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         if (mousemode == MouseMode::select) {
                             // if area of selection box is > 5x5 px
-                            float selboxSize = (event.button.x - select_box.x()) * (event.button.y - select_box.y());
+                            float selboxSize = (scribe->get_mouse_x() - select_box.x()) * (scribe->get_mouse_y() - select_box.y());
                             selboxSize = selboxSize < 0.f ? selboxSize * -1.f : selboxSize;
                             if (selboxSize > 20.f && selecting) {
-                                agentPlanner->select_agent_box(select_box.x(), select_box.y(), event.button.x, event.button.y);
+                                agentPlanner->select_agent_box(select_box.x(), select_box.y(), scribe->get_mouse_x(), scribe->get_mouse_y());
                             }
                             else {
-                                agentPlanner->select_agent_point(event.button.x, event.button.y);
+                                agentPlanner->select_agent_point(scribe->get_mouse_x(), scribe->get_mouse_y());
                             }
                             selecting = false;
                             select_box = Vector2();
@@ -202,19 +202,23 @@ int main(int argc, char* argv[])
                     }
                     break;
                 case SDL_MOUSEMOTION:
-                    if (selecting) {
-                        mouse_pos = Vector2(event.button.x, event.button.y);
-                    }
+                    scribe->update_mouse(event.button.x, event.button.y);
+                    mouse_pos = scribe->get_mouse_vec();
                     break;
             }
         }
 
         // Clear the screen / set background color
         scribe->clear();
+        scribe->update(frame_time_ms);
 
         // do all agent related stuff
         agentPlanner->update(frame_time_ms);
         agentPlanner->debug_draw(scribe);
+
+        // draw cam+mouse stuff for debug
+        scribe->set_draw_color(Color::PURPLE);
+        scribe->draw_circle(scribe->get_mouse_x(), scribe->get_mouse_y(), 2);
 
         // draw selection box (if applicable)
         if (selecting) {

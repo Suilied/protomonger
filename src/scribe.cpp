@@ -14,6 +14,12 @@ void Scribe::draw_quadrant(SDL_Renderer* renderer, int a, int b, int x, int y) {
 void Scribe::draw_circle(int x, int y, int radius) {
     SDL_SetRenderDrawColor(_renderer, _colors[_draw_color].r, _colors[_draw_color].g, _colors[_draw_color].b, _colors[_draw_color].a);
 
+    Vector2 camvec = _camera->get_position();
+    x += camvec.x();
+    y += camvec.y();
+    //radius *= _camera->get_zoom();
+    //TODO: add zoom
+
     int pk = 3 - 2*radius;
     int a=0;
     int b=radius;
@@ -31,6 +37,14 @@ void Scribe::draw_circle(int x, int y, int radius) {
 }
 
 void Scribe::draw_line(int x0, int y0, int x1, int y1) {
+
+    Vector2 camvec = _camera->get_position();
+    x0 += camvec.x();
+    x1 += camvec.x();
+    y0 += camvec.y();
+    y1 += camvec.y();
+    //TODO: add zoom
+
     SDL_SetRenderDrawColor(_renderer, _colors[_draw_color].r, _colors[_draw_color].g, _colors[_draw_color].b, _colors[_draw_color].a);
     SDL_RenderDrawLine(_renderer, x0, y0, x1, y1);
 }
@@ -77,6 +91,10 @@ void Scribe::clear(){
     SDL_RenderClear(_renderer);
 }
 
+void Scribe::update(float frameTime) {
+    _camera->update(frameTime);
+}
+
 void Scribe::draw(){
     SDL_RenderPresent(_renderer);
 }
@@ -92,8 +110,7 @@ void Scribe::move_camera(float x, float y) {
 }
 
 void Scribe::add_move_camera(Vector2 dir) {
-    Vector2 currentpos = _camera->get_position();
-    _camera->set_position_target(currentpos + dir);
+    _camera->set_position_target(_camera->get_position() + dir);
 }
 
 void Scribe::snap_zoom_camera(float z) {
@@ -104,6 +121,26 @@ void Scribe::zoom_camera(float z) {
     _camera->set_zoom_target(z);
 }
 
+Vector2 Scribe::screen_to_world(Vector2 mouse_event_pos) {
+    return mouse_event_pos + _camera->get_position();
+}
+
+void Scribe::update_mouse(float x, float y) {
+    _mouse_world_pos = Vector2(x, y) - _camera->get_position();
+    //TODO: add zoom
+}
+
+Vector2 Scribe::get_mouse_vec() {
+    return _mouse_world_pos;
+}
+
+float Scribe::get_mouse_x() {
+    return _mouse_world_pos.x();
+}
+
+float Scribe::get_mouse_y() {
+    return _mouse_world_pos.y();
+}
 
 // CREATOR DESTRUCTOR
 Scribe::Scribe(SDL_Renderer* renderer) {
@@ -120,6 +157,7 @@ Scribe::Scribe(SDL_Renderer* renderer) {
     _colors.push_back({ 0x00, 0xff, 0x00, 0xff });   // GREEN
     _colors.push_back({ 0x00, 0xff, 0xff, 0xff });   // CYAN
     _colors.push_back({ 0x00, 0x00, 0xff, 0xff });   // BLUE
+    _colors.push_back({ 0xff, 0x00, 0xff, 0xff });   // PURPLE
     _colors.push_back({ 0x00, 0x00, 0x00, 0x00 });   // NONE
 
     TTF_Init();

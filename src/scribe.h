@@ -18,6 +18,7 @@ enum Color {
     GREEN,
     CYAN,
     BLUE,
+    PURPLE,
     NONE
 };
 
@@ -32,6 +33,7 @@ private:
     SDL_Texture* _msg_tex;
 
     Camera* _camera;
+    Vector2 _mouse_world_pos;
 
     void draw_quadrant(SDL_Renderer* renderer, int a, int b, int x, int y);
 
@@ -44,6 +46,7 @@ public:
     void draw_rectangle(int x0, int y0, int x1, int y1);
     void draw_text(int x, int y, const char* t);
     void clear();
+    void update(float frameTime);
     void draw();
 
     void snap_move_camera(float x, float y);
@@ -51,6 +54,11 @@ public:
     void add_move_camera(Vector2 dir);
     void snap_zoom_camera(float z);
     void zoom_camera(float z);
+    Vector2 screen_to_world(Vector2 mouse_event_pos);
+    void update_mouse(float x, float y);
+    Vector2 get_mouse_vec();
+    float get_mouse_x();
+    float get_mouse_y();
 
     Scribe(SDL_Renderer* renderer);
     ~Scribe();
